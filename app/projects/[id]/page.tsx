@@ -87,6 +87,15 @@ export default function ProjectPage() {
   const [showAddRepoModal, setShowAddRepoModal] = useState(false)
   const [availableProjects, setAvailableProjects] = useState<Project[]>([])
   const [isMergingProject, setIsMergingProject] = useState(false)
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false)
+  const [newTaskData, setNewTaskData] = useState({
+    title: '',
+    description: '',
+    priority: 'medium',
+    status: 'todo',
+    tags: [] as string[],
+  })
+  const [isCreatingTask, setIsCreatingTask] = useState(false)
 
   useEffect(() => {
     if (!projectId) return
@@ -261,6 +270,65 @@ export default function ProjectPage() {
     setShowAddRepoModal(true)
   }
 
+  const openAddTaskModal = () => {
+    setNewTaskData({
+      title: '',
+      description: '',
+      priority: 'medium',
+      status: 'todo',
+      tags: [],
+    })
+    setShowAddTaskModal(true)
+  }
+
+  const handleCreateTask = async () => {
+    if (!newTaskData.title.trim()) {
+      alert('Task title is required')
+      return
+    }
+
+    setIsCreatingTask(true)
+    try {
+      // Get highest order number for the project
+      const maxOrder = project?.tasks.reduce((max, t) => Math.max(max, t.order), 0) || 0
+
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newTaskData.title,
+          description: newTaskData.description || null,
+          priority: newTaskData.priority,
+          status: newTaskData.status,
+          projectId: projectId,
+          order: maxOrder + 1,
+          tags: newTaskData.tags.length > 0 ? JSON.stringify(newTaskData.tags) : null,
+        }),
+      })
+
+      if (res.ok) {
+        setShowAddTaskModal(false)
+        await fetchProject()
+      } else {
+        alert('Failed to create task')
+      }
+    } catch (error) {
+      console.error('Error creating task:', error)
+      alert('Failed to create task')
+    } finally {
+      setIsCreatingTask(false)
+    }
+  }
+
+  const toggleTaskTag = (tag: string) => {
+    setNewTaskData(prev => ({
+      ...prev,
+      tags: prev.tags.includes(tag)
+        ? prev.tags.filter(t => t !== tag)
+        : [...prev.tags, tag]
+    }))
+  }
+
   if (!projectId || !project) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900">
@@ -327,6 +395,12 @@ export default function ProjectPage() {
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
               >
                 📦 Add Repository
+              </button>
+              <button
+                onClick={openAddTaskModal}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+              >
+                ➕ Add Task
               </button>
               <button
                 onClick={handleGenerateMoreTasks}
@@ -764,6 +838,127 @@ export default function ProjectPage() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Add Task Modal */}
+      {showAddTaskModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-lg w-full mx-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-white">Add New Task</h2>
+              <button
+                onClick={() => setShowAddTaskModal(false)}
+                className="text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Title <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newTaskData.title}
+                  onChange={(e) => setNewTaskData({ ...newTaskData, title: e.target.value })}
+                  placeholder="Enter task title"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={newTaskData.description}
+                  onChange={(e) => setNewTaskData({ ...newTaskData, description: e.target.value })}
+                  placeholder="Enter task description"
+                  rows={3}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Priority
+                </label>
+                <select
+                  value={newTaskData.priority}
+                  onChange={(e) => setNewTaskData({ ...newTaskData, priority: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Status
+                </label>
+                <select
+                  value={newTaskData.status}
+                  onChange={(e) => setNewTaskData({ ...newTaskData, status: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="todo">To Do</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="done">Done</option>
+                </select>
+              </div>
+
+              {/* Repository Tags (only for multi-repo projects) */}
+              {repositories.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Repository Tags
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {repositories.map(repo => (
+                      <button
+                        key={repo.name}
+                        type="button"
+                        onClick={() => toggleTaskTag(repo.name)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
+                          newTaskData.tags.includes(repo.name)
+                            ? 'bg-purple-900/30 text-purple-400 border-purple-500/30'
+                            : 'bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600'
+                        }`}
+                      >
+                        📦 {repo.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowAddTaskModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateTask}
+                  disabled={isCreatingTask || !newTaskData.title.trim()}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-600 transition-colors"
+                >
+                  {isCreatingTask ? 'Creating...' : 'Create Task'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
