@@ -175,6 +175,8 @@ Claude Code will:
 5. Complete the work
 6. Mark as `done` via `update_task`
 
+![MCP Task Example](../screenshots/mcp-task.png)
+
 ### Batch Task Processing
 
 ```
