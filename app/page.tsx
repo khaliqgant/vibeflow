@@ -153,8 +153,11 @@ export default function Home() {
               🤖
             </div>
             <h1 className="text-4xl font-bold text-white mb-4">Welcome to VibeFlow</h1>
-            <p className="text-lg text-gray-300">
-              AI-powered project management that analyzes your repos and creates intelligent tasks
+            <p className="text-lg text-gray-300 mb-2">
+              <strong className="font-semibold">AI-Powered Project Management That Actually Understands Your Code</strong>
+            </p>
+            <p className="text-gray-400">
+              Point it at your repos. Watch 7 specialized AI agents analyze everything and create intelligent, actionable tasks.
             </p>
           </div>
 

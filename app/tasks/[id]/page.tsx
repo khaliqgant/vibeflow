@@ -56,7 +56,7 @@ export default function TaskDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [editData, setEditData] = useState<Partial<Task>>({})
+  const [editData, setEditData] = useState<Partial<Task & { agentType?: string }>>({})
 
   useEffect(() => {
     loadTask()
@@ -79,6 +79,7 @@ export default function TaskDetailPage() {
         status: data.status,
         priority: data.priority,
         tags: data.tags,
+        agentType: data.agentType,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load task')
@@ -195,6 +196,7 @@ export default function TaskDetailPage() {
                       status: task.status,
                       priority: task.priority,
                       tags: task.tags,
+                      agentType: task.agentType,
                     })
                   }}
                   className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors"
@@ -257,6 +259,20 @@ export default function TaskDetailPage() {
                       {priority}
                     </option>
                   ))}
+                </select>
+                <select
+                  value={editData.agentType || ''}
+                  onChange={(e) => setEditData({ ...editData, agentType: e.target.value || undefined })}
+                  className="px-3 py-1 rounded-lg border border-gray-600 bg-gray-700 text-white text-sm font-medium"
+                >
+                  <option value="">No Agent</option>
+                  <option value="marketing">📢 Marketing</option>
+                  <option value="pricing">💰 Pricing</option>
+                  <option value="competitor">⚔️ Competitor</option>
+                  <option value="seo">🔍 SEO</option>
+                  <option value="blogging">✍️ Blogging</option>
+                  <option value="technical">⚙️ Technical</option>
+                  <option value="pm">📋 PM</option>
                 </select>
               </>
             ) : (

@@ -35,6 +35,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const task = await prisma.task.update({
       where: { id },
       data: body,
+      include: {
+        project: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            repositories: true
+          }
+        }
+      }
     })
 
     return NextResponse.json(task)

@@ -86,6 +86,9 @@ export function KanbanBoard({ tasks, onTaskUpdate, repositories = [] }: KanbanBo
 
     try {
       const taskTags = task.tags ? JSON.parse(task.tags) : []
+      // If task has no tags, show it (untagged tasks should always be visible)
+      if (taskTags.length === 0) return true
+      // Otherwise, check if task has any matching repository tags
       return repoFilter.some(repo => taskTags.includes(repo))
     } catch {
       return false

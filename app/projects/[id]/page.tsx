@@ -94,6 +94,7 @@ export default function ProjectPage() {
     priority: 'medium',
     status: 'todo',
     tags: [] as string[],
+    agentType: null as string | null,
   })
   const [isCreatingTask, setIsCreatingTask] = useState(false)
 
@@ -271,12 +272,18 @@ export default function ProjectPage() {
   }
 
   const openAddTaskModal = () => {
+    // If we're on an agent board, default to that agent type
+    const defaultAgentType = activeView !== 'overview' && activeView !== 'all-tasks' && activeView !== 'open-prs'
+      ? activeView
+      : null
+
     setNewTaskData({
       title: '',
       description: '',
       priority: 'medium',
       status: 'todo',
       tags: [],
+      agentType: defaultAgentType,
     })
     setShowAddTaskModal(true)
   }
@@ -292,25 +299,36 @@ export default function ProjectPage() {
       // Get highest order number for the project
       const maxOrder = project?.tasks.reduce((max, t) => Math.max(max, t.order), 0) || 0
 
+      const taskData = {
+        title: newTaskData.title,
+        description: newTaskData.description || null,
+        priority: newTaskData.priority,
+        status: newTaskData.status,
+        projectId: projectId,
+        order: maxOrder + 1,
+        tags: newTaskData.tags.length > 0 ? JSON.stringify(newTaskData.tags) : null,
+        agentType: newTaskData.agentType || null,
+      }
+
+      console.log('Creating task:', taskData)
+
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newTaskData.title,
-          description: newTaskData.description || null,
-          priority: newTaskData.priority,
-          status: newTaskData.status,
-          projectId: projectId,
-          order: maxOrder + 1,
-          tags: newTaskData.tags.length > 0 ? JSON.stringify(newTaskData.tags) : null,
-        }),
+        body: JSON.stringify(taskData),
       })
 
+      console.log('Task creation response:', res.status)
+
       if (res.ok) {
+        const createdTask = await res.json()
+        console.log('Created task:', createdTask)
         setShowAddTaskModal(false)
         await fetchProject()
       } else {
-        alert('Failed to create task')
+        const errorData = await res.json()
+        console.error('Failed to create task:', errorData)
+        alert(`Failed to create task: ${errorData.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error creating task:', error)
@@ -914,6 +932,27 @@ export default function ProjectPage() {
                   <option value="todo">To Do</option>
                   <option value="in_progress">In Progress</option>
                   <option value="done">Done</option>
+                </select>
+              </div>
+
+              {/* Agent Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Agent Type
+                </label>
+                <select
+                  value={newTaskData.agentType || ''}
+                  onChange={(e) => setNewTaskData({ ...newTaskData, agentType: e.target.value || null })}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">None</option>
+                  <option value="marketing">📢 Marketing</option>
+                  <option value="pricing">💰 Pricing</option>
+                  <option value="competitor">⚔️ Competitor</option>
+                  <option value="seo">🔍 SEO</option>
+                  <option value="blogging">✍️ Blogging</option>
+                  <option value="technical">⚙️ Technical</option>
+                  <option value="pm">📋 PM</option>
                 </select>
               </div>
 
