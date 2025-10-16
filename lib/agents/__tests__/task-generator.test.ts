@@ -1,5 +1,6 @@
 import { generateTasksWithAgent, generateAllAgentTasks } from '../task-generator'
-import { Agent, ProjectContext, AgentAnalysis } from '../types'
+import { Agent, ProjectContext } from '../types'
+import * as claudeModule from '../../ai/claude'
 
 // Mock the AI module
 jest.mock('../../ai/claude', () => ({
@@ -29,7 +30,7 @@ describe('Task Generator', () => {
 
   describe('generateTasksWithAgent', () => {
     it('should generate tasks from agent analysis', async () => {
-      const { analyzeWithClaude } = require('../../ai/claude')
+      const analyzeWithClaude = claudeModule.analyzeWithClaude as jest.MockedFunction<typeof claudeModule.analyzeWithClaude>
       const mockResponse = JSON.stringify({
         insights: ['Insight 1', 'Insight 2'],
         tasks: [
@@ -55,7 +56,7 @@ describe('Task Generator', () => {
     })
 
     it('should handle invalid JSON response gracefully', async () => {
-      const { analyzeWithClaude } = require('../../ai/claude')
+      const analyzeWithClaude = claudeModule.analyzeWithClaude as jest.MockedFunction<typeof claudeModule.analyzeWithClaude>
       analyzeWithClaude.mockResolvedValue('Invalid JSON response')
 
       const result = await generateTasksWithAgent(mockAgent, mockContext)
@@ -67,7 +68,7 @@ describe('Task Generator', () => {
     })
 
     it('should include project context in prompt', async () => {
-      const { analyzeWithClaude } = require('../../ai/claude')
+      const analyzeWithClaude = claudeModule.analyzeWithClaude as jest.MockedFunction<typeof claudeModule.analyzeWithClaude>
       analyzeWithClaude.mockResolvedValue('{}')
 
       await generateTasksWithAgent(mockAgent, mockContext)
@@ -79,7 +80,7 @@ describe('Task Generator', () => {
     })
 
     it('should set appropriate maxTokens', async () => {
-      const { analyzeWithClaude } = require('../../ai/claude')
+      const analyzeWithClaude = claudeModule.analyzeWithClaude as jest.MockedFunction<typeof claudeModule.analyzeWithClaude>
       analyzeWithClaude.mockResolvedValue('{}')
 
       await generateTasksWithAgent(mockAgent, mockContext)
@@ -91,7 +92,7 @@ describe('Task Generator', () => {
 
   describe('generateAllAgentTasks', () => {
     it('should run all agents in parallel', async () => {
-      const { analyzeWithClaude } = require('../../ai/claude')
+      const analyzeWithClaude = claudeModule.analyzeWithClaude as jest.MockedFunction<typeof claudeModule.analyzeWithClaude>
       analyzeWithClaude.mockResolvedValue(
         JSON.stringify({
           insights: ['Test insight'],
@@ -116,7 +117,7 @@ describe('Task Generator', () => {
     })
 
     it('should handle errors in individual agents', async () => {
-      const { analyzeWithClaude } = require('../../ai/claude')
+      const analyzeWithClaude = claudeModule.analyzeWithClaude as jest.MockedFunction<typeof claudeModule.analyzeWithClaude>
       analyzeWithClaude.mockRejectedValueOnce(new Error('API Error'))
       analyzeWithClaude.mockResolvedValueOnce('{}')
 
@@ -129,7 +130,7 @@ describe('Task Generator', () => {
     })
 
     it('should return map with agent types as keys', async () => {
-      const { analyzeWithClaude } = require('../../ai/claude')
+      const analyzeWithClaude = claudeModule.analyzeWithClaude as jest.MockedFunction<typeof claudeModule.analyzeWithClaude>
       analyzeWithClaude.mockResolvedValue('{"insights":[],"tasks":[],"recommendations":[]}')
 
       const agents = [{ ...mockAgent, type: 'technical' as const }]

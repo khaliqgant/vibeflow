@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { analyzeProject, analyzeCode } from '../ai/claude'
+import { analyzeProject } from '../ai/claude'
 import { parseGitHubUrl, getOpenPRs, getOpenIssues, getRepoInfo } from '../github/client'
 import { generateAllAgentTasks } from './task-generator'
 import { ProjectContext } from './types'
@@ -75,8 +75,9 @@ REASONING: [2-3 sentences explaining the technical importance, potential impact,
     )
 
     // Parse the response
-    const descMatch = response.match(/DESCRIPTION:\s*(.+?)(?=REASONING:|$)/s)
-    const reasonMatch = response.match(/REASONING:\s*(.+?)$/s)
+    const responseText = response.text || String(response)
+    const descMatch = responseText.match(/DESCRIPTION:\s*(.+?)(?=REASONING:|$)/s)
+    const reasonMatch = responseText.match(/REASONING:\s*(.+?)$/s)
 
     const description = descMatch
       ? descMatch[1].trim()
@@ -142,7 +143,7 @@ export async function orchestrateProjectAnalysis(projectId: string) {
 
   // Convert database agents to the Agent format expected by task-generator
   const agents = dbAgents.map(agent => ({
-    type: agent.type as any,
+    type: agent.type as 'marketing' | 'pricing' | 'competitor' | 'seo' | 'blogging' | 'technical' | 'pm',
     name: agent.name,
     description: agent.description,
     systemPrompt: agent.systemPrompt,
@@ -170,9 +171,14 @@ export async function orchestrateProjectAnalysis(projectId: string) {
 
   // Collect all agent tasks and prioritize them
   const MAX_TASKS = 50
-  let allAgentTasks: Array<{
+  const allAgentTasks: Array<{
     agentType: string
-    task: any
+    task: {
+      title: string
+      description: string
+      priority: 'low' | 'medium' | 'high'
+      reasoning: string
+    }
     priorityScore: number
   }> = []
 
@@ -370,11 +376,17 @@ export async function orchestrateProjectAnalysis(projectId: string) {
   }
 }
 
-async function buildProjectContext(project: any): Promise<ProjectContext> {
+async function buildProjectContext(project: {
+  id: string
+  name: string
+  description?: string | null
+  repoUrl?: string | null
+  path: string
+}): Promise<ProjectContext> {
   const context: ProjectContext = {
     name: project.name,
-    description: project.description,
-    repoUrl: project.repoUrl,
+    description: project.description ?? undefined,
+    repoUrl: project.repoUrl ?? undefined,
   }
 
   // Read README
@@ -467,7 +479,7 @@ async function getCodeStructure(projectPath: string): Promise<string> {
     }
 
     return structure.join('\n')
-  } catch (error) {
+  } catch (_error) {
     return 'Unable to read project structure'
   }
 }

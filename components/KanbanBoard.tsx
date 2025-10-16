@@ -36,7 +36,7 @@ const columns = [
   { id: 'done', title: 'Done' },
 ]
 
-export function KanbanBoard({ tasks, projectId, onTaskUpdate }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onTaskUpdate }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
 
   const sensors = useSensors(

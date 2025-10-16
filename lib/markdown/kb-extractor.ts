@@ -141,7 +141,7 @@ async function findMarkdownFilesRecursive(
         files.push(fullPath)
       }
     }
-  } catch (error) {
+  } catch {
     // Could not read directory
   }
 

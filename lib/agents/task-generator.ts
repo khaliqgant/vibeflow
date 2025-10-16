@@ -110,19 +110,19 @@ function parseAgentResponse(agentType: string, response: string): AgentAnalysis 
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
       return {
-        agentType: agentType as any,
+        agentType: agentType as 'marketing' | 'pricing' | 'competitor' | 'seo' | 'blogging' | 'technical' | 'pm',
         insights: parsed.insights || [],
         tasks: parsed.tasks || [],
         recommendations: parsed.recommendations || [],
       }
     }
-  } catch (e) {
-    console.error('Failed to parse agent response:', e)
+  } catch (_e) {
+    console.error('Failed to parse agent response:', _e)
   }
 
   // Fallback: return empty analysis
   return {
-    agentType: agentType as any,
+    agentType: agentType as 'marketing' | 'pricing' | 'competitor' | 'seo' | 'blogging' | 'technical' | 'pm',
     insights: ['Analysis completed but response format was unexpected'],
     tasks: [],
     recommendations: [],

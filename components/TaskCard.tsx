@@ -26,7 +26,7 @@ const priorityColors = {
   high: 'bg-red-900/30 text-red-400',
 }
 
-export function TaskCard({ task, onUpdate }: TaskCardProps) {
+export function TaskCard({ task }: TaskCardProps) {
   const router = useRouter()
   const {
     attributes,

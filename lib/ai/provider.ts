@@ -65,12 +65,13 @@ export async function generateWithAI(
     } else {
       return await generateWithClaude(systemPrompt, userPrompt, model, maxTokens)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // If authentication fails, try the other provider as fallback
-    const isAuthError = error?.message?.includes('authentication') ||
-                        error?.message?.includes('401') ||
-                        error?.message?.includes('invalid x-api-key') ||
-                        error?.message?.includes('Incorrect API key')
+    const errorMessage = error instanceof Error ? error.message : ''
+    const isAuthError = errorMessage.includes('authentication') ||
+                        errorMessage.includes('401') ||
+                        errorMessage.includes('invalid x-api-key') ||
+                        errorMessage.includes('Incorrect API key')
 
     if (isAuthError) {
       console.warn(`${provider} authentication failed, falling back to alternate provider`)

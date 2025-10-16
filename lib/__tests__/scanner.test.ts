@@ -16,9 +16,9 @@ describe('Scanner', () => {
   describe('scanDirectory', () => {
     it('should scan directory and return projects', async () => {
       mockFs.readdir.mockResolvedValue([
-        { name: 'project1', isDirectory: () => true } as any,
-        { name: 'project2', isDirectory: () => true } as any,
-        { name: 'file.txt', isDirectory: () => false } as any,
+        { name: 'project1', isDirectory: () => true } as fs.Dirent,
+        { name: 'project2', isDirectory: () => true } as fs.Dirent,
+        { name: 'file.txt', isDirectory: () => false } as fs.Dirent,
       ])
 
       mockFs.access.mockResolvedValue(undefined)
@@ -29,7 +29,7 @@ describe('Scanner', () => {
           { name: 'origin', refs: { fetch: 'https://github.com/test/repo' } },
         ]),
       }
-      mockGit.mockReturnValue(mockGitInstance as any)
+      mockGit.mockReturnValue(mockGitInstance as ReturnType<typeof simpleGit>)
 
       const result = await scanDirectory('/test/path')
 
@@ -41,8 +41,8 @@ describe('Scanner', () => {
 
     it('should skip hidden directories', async () => {
       mockFs.readdir.mockResolvedValue([
-        { name: '.hidden', isDirectory: () => true } as any,
-        { name: 'visible', isDirectory: () => true } as any,
+        { name: '.hidden', isDirectory: () => true } as fs.Dirent,
+        { name: 'visible', isDirectory: () => true } as fs.Dirent,
       ])
 
       mockFs.access.mockResolvedValue(undefined)
@@ -51,7 +51,7 @@ describe('Scanner', () => {
       const mockGitInstance = {
         getRemotes: jest.fn().mockResolvedValue([]),
       }
-      mockGit.mockReturnValue(mockGitInstance as any)
+      mockGit.mockReturnValue(mockGitInstance as ReturnType<typeof simpleGit>)
 
       const result = await scanDirectory('/test/path')
 
@@ -61,7 +61,7 @@ describe('Scanner', () => {
 
     it('should handle directories without git', async () => {
       mockFs.readdir.mockResolvedValue([
-        { name: 'no-git', isDirectory: () => true } as any,
+        { name: 'no-git', isDirectory: () => true } as fs.Dirent,
       ])
 
       mockFs.access.mockRejectedValue(new Error('Not found'))
@@ -76,7 +76,7 @@ describe('Scanner', () => {
 
     it('should extract description from README', async () => {
       mockFs.readdir.mockResolvedValue([
-        { name: 'project', isDirectory: () => true } as any,
+        { name: 'project', isDirectory: () => true } as fs.Dirent,
       ])
 
       mockFs.access.mockResolvedValue(undefined)
@@ -85,7 +85,7 @@ describe('Scanner', () => {
       const mockGitInstance = {
         getRemotes: jest.fn().mockResolvedValue([]),
       }
-      mockGit.mockReturnValue(mockGitInstance as any)
+      mockGit.mockReturnValue(mockGitInstance as ReturnType<typeof simpleGit>)
 
       const result = await scanDirectory('/test/path')
 
@@ -94,7 +94,7 @@ describe('Scanner', () => {
 
     it('should handle missing README', async () => {
       mockFs.readdir.mockResolvedValue([
-        { name: 'project', isDirectory: () => true } as any,
+        { name: 'project', isDirectory: () => true } as fs.Dirent,
       ])
 
       mockFs.access.mockResolvedValue(undefined)
@@ -103,7 +103,7 @@ describe('Scanner', () => {
       const mockGitInstance = {
         getRemotes: jest.fn().mockResolvedValue([]),
       }
-      mockGit.mockReturnValue(mockGitInstance as any)
+      mockGit.mockReturnValue(mockGitInstance as ReturnType<typeof simpleGit>)
 
       const result = await scanDirectory('/test/path')
 

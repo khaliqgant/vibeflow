@@ -327,7 +327,7 @@ export default function SettingsPage() {
               <h3 className="font-bold text-lg mb-1">Your keys are secure</h3>
               <p className="text-blue-100 text-sm">
                 API keys are stored locally in your environment and never sent to external servers.
-                They're used only to communicate directly with AI providers.
+                They&apos;re used only to communicate directly with AI providers.
               </p>
             </div>
           </div>

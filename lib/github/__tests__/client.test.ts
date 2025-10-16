@@ -25,7 +25,7 @@ describe('GitHub Client', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(Octokit as jest.MockedClass<typeof Octokit>).mockImplementation(() => mockOctokit as any)
+    ;(Octokit as jest.MockedClass<typeof Octokit>).mockImplementation(() => mockOctokit as unknown as InstanceType<typeof Octokit>)
   })
 
   describe('parseGitHubUrl', () => {

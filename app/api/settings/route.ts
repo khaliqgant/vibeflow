@@ -70,7 +70,7 @@ export async function GET() {
       hasOpenAIKey,
       hasGithubToken,
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to load settings' }, { status: 500 })
   }
 }
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, settings })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to save settings' }, { status: 500 })
   }
 }

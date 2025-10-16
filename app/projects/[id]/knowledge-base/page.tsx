@@ -38,6 +38,7 @@ export default function ProjectKnowledgeBasePage() {
     if (!projectId) return
     loadProject()
     loadDocuments()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, searchQuery])
 
   async function loadProject() {

@@ -12,7 +12,7 @@ Point it at your repos. Watch 7 specialized AI agents analyze everything and cre
 [![Coverage](https://img.shields.io/badge/coverage-70%25-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-![VibeFlow Dashboard](https://via.placeholder.com/800x450/667eea/ffffff?text=VibeFlow+Dashboard)
+![VibeFlow Dashboard](./screenshots/projects.png)
 
 </div>
 
@@ -115,7 +115,7 @@ Separate kanban for each agent. Filter by marketing, technical, SEO, etc.
 <details>
 <summary><b>🏠 Beautiful Project Dashboard</b></summary>
 
-![Dashboard](https://via.placeholder.com/800x450/667eea/ffffff?text=Project+Dashboard)
+![Dashboard](./screenshots/projects.png)
 
 Track progress, view insights, and see AI analysis for each project.
 
@@ -124,7 +124,7 @@ Track progress, view insights, and see AI analysis for each project.
 <details>
 <summary><b>📋 Agent-Specific Kanban Boards</b></summary>
 
-![Kanban](https://via.placeholder.com/800x450/667eea/ffffff?text=Kanban+Board)
+![Kanban](./screenshots/agents.png)
 
 Drag tasks between To Do, In Progress, and Done. Each agent has their own board.
 

@@ -36,11 +36,11 @@ export async function POST(
     })
 
     const agents = dbAgents.map(agent => ({
-      type: agent.type as any,
+      type: agent.type,
       name: agent.name,
       description: agent.description,
       systemPrompt: agent.systemPrompt,
-      taskCategories: JSON.parse(agent.taskCategories),
+      taskCategories: JSON.parse(agent.taskCategories) as string[],
     }))
 
     // Build minimal context (we don't need full analysis again)
@@ -54,9 +54,14 @@ export async function POST(
     const agentAnalyses = await generateAllAgentTasks(agents, context)
 
     // Collect all tasks and prioritize
-    let allTasks: Array<{
+    const allTasks: Array<{
       agentType: string
-      task: any
+      task: {
+        title: string
+        description: string
+        priority: string
+        reasoning?: string
+      }
       priorityScore: number
     }> = []
 

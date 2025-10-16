@@ -9,15 +9,6 @@ export interface ExtractedTask {
   isCompleted: boolean
 }
 
-const TASK_PATTERNS = [
-  // Markdown checkboxes
-  /^[\s-]*\[[ ]\]\s+(.+)$/gm,  // - [ ] Task or [ ] Task
-  /^[\s-]*\[x\]\s+(.+)$/gim,   // - [x] Task or [x] Task (completed)
-
-  // TODO/FIXME comments
-  /(?:TODO|FIXME|NOTE|HACK):\s*(.+)$/gim,
-]
-
 const PRIORITY_KEYWORDS = {
   high: ['urgent', 'critical', 'important', 'asap', 'priority', '!!!', 'bug', 'fix'],
   medium: ['should', 'improve', 'enhance', 'update', 'refactor'],

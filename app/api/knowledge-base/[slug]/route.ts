@@ -44,7 +44,7 @@ export async function PATCH(
     const body = await request.json()
     const { title, content, tags } = body
 
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
 
     if (title) updateData.title = title
     if (content) updateData.content = content

@@ -19,7 +19,7 @@ export async function GET() {
       orderBy: { updatedAt: 'desc' },
     })
     return NextResponse.json(projects)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 })
   }
 }
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
       // Process each group
       for (const [parentName, groupProjects] of projectGroups) {
-        let parentProject: any = null
+        let parentProject: { id: string } | null = null
 
         // If we have a suggested parent name and multiple repos, create parent project
         if (parentName && groupProjects.length > 1) {

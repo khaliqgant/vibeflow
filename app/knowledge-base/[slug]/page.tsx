@@ -29,6 +29,7 @@ export default function KnowledgeBaseDocumentPage() {
 
   useEffect(() => {
     loadDocument()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.slug])
 
   async function loadDocument() {
@@ -59,7 +60,7 @@ export default function KnowledgeBaseDocumentPage() {
       if (res.ok) {
         router.push('/knowledge-base')
       }
-    } catch (err) {
+    } catch (_err) {
       alert('Failed to delete document')
     }
   }
@@ -185,7 +186,7 @@ export default function KnowledgeBaseDocumentPage() {
               rehypePlugins={[rehypeHighlight]}
               components={{
                 // Custom styling for code blocks
-                code({ node, inline, className, children, ...props }: any) {
+                code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode; [key: string]: unknown }) {
                   return inline ? (
                     <code className="bg-gray-700 text-gray-200 px-1.5 py-0.5 rounded text-sm" {...props}>
                       {children}
@@ -197,7 +198,7 @@ export default function KnowledgeBaseDocumentPage() {
                   )
                 },
                 // Custom styling for links
-                a({ node, children, ...props }: any) {
+                a({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) {
                   return (
                     <a
                       className="text-blue-400 hover:text-blue-300 underline"

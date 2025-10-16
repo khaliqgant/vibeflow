@@ -2,8 +2,9 @@ import {
   getDefaultProvider,
   getDefaultModel,
   generateWithAI,
-  AIProvider,
 } from '../provider'
+import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 
 // Mock the AI SDKs
 jest.mock('@anthropic-ai/sdk')
@@ -61,7 +62,6 @@ describe('AI Provider', () => {
     it('should use Claude by default', async () => {
       delete process.env.AI_PROVIDER
 
-      const Anthropic = require('@anthropic-ai/sdk').default
       const mockCreate = jest.fn().mockResolvedValue({
         content: [{ type: 'text', text: 'Test response' }],
       })
@@ -81,7 +81,6 @@ describe('AI Provider', () => {
     })
 
     it('should use OpenAI when specified', async () => {
-      const OpenAI = require('openai').default
       const mockCreate = jest.fn().mockResolvedValue({
         choices: [{ message: { content: 'OpenAI response' } }],
       })
@@ -103,7 +102,6 @@ describe('AI Provider', () => {
     })
 
     it('should respect custom model parameter', async () => {
-      const Anthropic = require('@anthropic-ai/sdk').default
       const mockCreate = jest.fn().mockResolvedValue({
         content: [{ type: 'text', text: 'Test' }],
       })
@@ -121,7 +119,6 @@ describe('AI Provider', () => {
     })
 
     it('should respect custom maxTokens parameter', async () => {
-      const Anthropic = require('@anthropic-ai/sdk').default
       const mockCreate = jest.fn().mockResolvedValue({
         content: [{ type: 'text', text: 'Test' }],
       })

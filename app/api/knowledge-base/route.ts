@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const tags = searchParams.getAll('tag')
     const search = searchParams.get('search')
 
-    const where: any = {}
+    const where: Record<string, unknown> = {}
 
     if (projectId) {
       where.projectId = projectId

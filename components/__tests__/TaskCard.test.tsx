@@ -55,7 +55,7 @@ describe('TaskCard', () => {
   })
 
   it('should apply correct priority colors', () => {
-    const { container } = renderWithDnd(<TaskCard task={mockTask} onUpdate={jest.fn()} />)
+    renderWithDnd(<TaskCard task={mockTask} onUpdate={jest.fn()} />)
     const priorityBadge = screen.getByText('high').closest('span')
     expect(priorityBadge).toHaveClass('bg-red-100', 'text-red-800')
   })

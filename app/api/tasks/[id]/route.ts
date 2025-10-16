@@ -22,7 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 
     return NextResponse.json(task)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch task' }, { status: 500 })
   }
 }
@@ -37,7 +37,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     })
 
     return NextResponse.json(task)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
   }
 }
@@ -50,7 +50,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     })
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete task' }, { status: 500 })
   }
 }

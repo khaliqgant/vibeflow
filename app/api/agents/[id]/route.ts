@@ -43,7 +43,7 @@ export async function PATCH(
     }
 
     // Build update data object
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (name !== undefined) updateData.name = name
     if (icon !== undefined) updateData.icon = icon
     if (description !== undefined) updateData.description = description

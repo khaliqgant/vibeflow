@@ -282,7 +282,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_project_tasks': {
-        let where: any = { projectId: args.project_id as string }
+        const where: Record<string, unknown> = { projectId: args.project_id as string }
         if (args.status) where.status = args.status
         if (args.agent_type) where.agentType = args.agent_type
 
@@ -302,7 +302,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_next_task': {
-        const where: any = {
+        const where: Record<string, unknown> = {
           projectId: args.project_id as string,
           status: { in: ['todo', 'in_progress'] },
         }
@@ -334,7 +334,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'update_task': {
-        const updates: any = {}
+        const updates: Record<string, unknown> = {}
         if (args.status) updates.status = args.status
         if (args.description) updates.description = args.description
         if (args.priority) updates.priority = args.priority
@@ -462,7 +462,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'list_knowledge_base': {
-        const where: any = {}
+        const where: Record<string, unknown> = {}
 
         if (args.project_id) {
           where.projectId = args.project_id

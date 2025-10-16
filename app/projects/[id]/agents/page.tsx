@@ -42,6 +42,7 @@ export default function ProjectAgentsPage() {
     if (!projectId) return
     loadProject()
     loadAgents()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId])
 
   const loadProject = async () => {

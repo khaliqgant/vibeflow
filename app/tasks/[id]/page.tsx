@@ -51,6 +51,7 @@ export default function TaskDetailPage() {
 
   useEffect(() => {
     loadTask()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id])
 
   async function loadTask() {
@@ -91,7 +92,7 @@ export default function TaskDetailPage() {
         setTask(updated)
         setIsEditing(false)
       }
-    } catch (err) {
+    } catch (_err) {
       alert('Failed to update task')
     }
   }
@@ -108,7 +109,7 @@ export default function TaskDetailPage() {
       if (res.ok) {
         router.push(`/projects/${task.project.id}`)
       }
-    } catch (err) {
+    } catch (_err) {
       alert('Failed to delete task')
     }
   }

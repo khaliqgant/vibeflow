@@ -4,6 +4,9 @@
 
 import { orchestrateProjectAnalysis } from '../../lib/agents/orchestrator'
 import { PrismaClient } from '@prisma/client'
+import * as aiProvider from '../../lib/ai/provider'
+import * as githubClient from '../../lib/github/client'
+import * as fsPromises from 'fs/promises'
 
 // Mock external dependencies
 jest.mock('../../lib/ai/provider')
@@ -35,7 +38,7 @@ describe('Project Analysis Integration', () => {
     })
 
     // Mock AI responses
-    const { generateWithAI } = require('../../lib/ai/provider')
+    const generateWithAI = aiProvider.generateWithAI as jest.MockedFunction<typeof aiProvider.generateWithAI>
     generateWithAI.mockResolvedValue({
       text: JSON.stringify({
         summary: 'Test project summary',
@@ -47,15 +50,18 @@ describe('Project Analysis Integration', () => {
     })
 
     // Mock GitHub responses
-    const { parseGitHubUrl, getOpenPRs, getOpenIssues } = require('../../lib/github/client')
+    const parseGitHubUrl = githubClient.parseGitHubUrl as jest.MockedFunction<typeof githubClient.parseGitHubUrl>
+    const getOpenPRs = githubClient.getOpenPRs as jest.MockedFunction<typeof githubClient.getOpenPRs>
+    const getOpenIssues = githubClient.getOpenIssues as jest.MockedFunction<typeof githubClient.getOpenIssues>
     parseGitHubUrl.mockReturnValue({ owner: 'test', repo: 'repo' })
     getOpenPRs.mockResolvedValue([])
     getOpenIssues.mockResolvedValue([])
 
     // Mock file system
-    const fs = require('fs/promises')
-    fs.readFile.mockResolvedValue('# Test Project\n\nA test project')
-    fs.readdir.mockResolvedValue([])
+    const readFile = fsPromises.readFile as jest.MockedFunction<typeof fsPromises.readFile>
+    const readdir = fsPromises.readdir as jest.MockedFunction<typeof fsPromises.readdir>
+    readFile.mockResolvedValue('# Test Project\n\nA test project')
+    readdir.mockResolvedValue([])
 
     // Run orchestration
     const result = await orchestrateProjectAnalysis(project.id)
@@ -83,7 +89,7 @@ describe('Project Analysis Integration', () => {
       },
     })
 
-    const { generateWithAI } = require('../../lib/ai/provider')
+    const generateWithAI = aiProvider.generateWithAI as jest.MockedFunction<typeof aiProvider.generateWithAI>
 
     // Mock different responses for each agent
     let callCount = 0
@@ -105,9 +111,10 @@ describe('Project Analysis Integration', () => {
       })
     })
 
-    const fs = require('fs/promises')
-    fs.readFile.mockResolvedValue('# Test')
-    fs.readdir.mockResolvedValue([])
+    const readFile = fsPromises.readFile as jest.MockedFunction<typeof fsPromises.readFile>
+    const readdir = fsPromises.readdir as jest.MockedFunction<typeof fsPromises.readdir>
+    readFile.mockResolvedValue('# Test')
+    readdir.mockResolvedValue([])
 
     await orchestrateProjectAnalysis(project.id)
 
@@ -131,7 +138,7 @@ describe('Project Analysis Integration', () => {
       },
     })
 
-    const { generateWithAI } = require('../../lib/ai/provider')
+    const generateWithAI = aiProvider.generateWithAI as jest.MockedFunction<typeof aiProvider.generateWithAI>
     generateWithAI.mockResolvedValue({
       text: JSON.stringify({
         summary: 'Project without README',
@@ -142,9 +149,10 @@ describe('Project Analysis Integration', () => {
       }),
     })
 
-    const fs = require('fs/promises')
-    fs.readFile.mockRejectedValue(new Error('File not found'))
-    fs.readdir.mockResolvedValue([])
+    const readFile = fsPromises.readFile as jest.MockedFunction<typeof fsPromises.readFile>
+    const readdir = fsPromises.readdir as jest.MockedFunction<typeof fsPromises.readdir>
+    readFile.mockRejectedValue(new Error('File not found'))
+    readdir.mockResolvedValue([])
 
     await expect(orchestrateProjectAnalysis(project.id)).resolves.not.toThrow()
 
@@ -163,7 +171,7 @@ describe('Project Analysis Integration', () => {
       },
     })
 
-    const { generateWithAI } = require('../../lib/ai/provider')
+    const generateWithAI = aiProvider.generateWithAI as jest.MockedFunction<typeof aiProvider.generateWithAI>
     generateWithAI.mockResolvedValue({
       text: JSON.stringify({
         insights: ['Insight 1', 'Insight 2', 'Insight 3'],
@@ -172,9 +180,10 @@ describe('Project Analysis Integration', () => {
       }),
     })
 
-    const fs = require('fs/promises')
-    fs.readFile.mockResolvedValue('# Test')
-    fs.readdir.mockResolvedValue([])
+    const readFile = fsPromises.readFile as jest.MockedFunction<typeof fsPromises.readFile>
+    const readdir = fsPromises.readdir as jest.MockedFunction<typeof fsPromises.readdir>
+    readFile.mockResolvedValue('# Test')
+    readdir.mockResolvedValue([])
 
     await orchestrateProjectAnalysis(project.id)
 

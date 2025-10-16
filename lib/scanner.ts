@@ -146,11 +146,24 @@ function extractDescription(readmeContent?: string): string | undefined {
 
   const lines = readmeContent.split('\n')
 
-  // Skip title lines and find first paragraph
-  for (let i = 0; i < Math.min(lines.length, 20); i++) {
+  // Skip title lines, HTML tags, images, and find first paragraph
+  for (let i = 0; i < Math.min(lines.length, 30); i++) {
     const line = lines[i].trim()
-    if (line && !line.startsWith('#') && !line.startsWith('!')) {
-      return line.slice(0, 200)
+
+    // Skip empty lines, headers, images, HTML tags, and badges
+    if (!line) continue
+    if (line.startsWith('#')) continue
+    if (line.startsWith('!')) continue
+    if (line.startsWith('<') && line.endsWith('>')) continue
+    if (line.startsWith('[!') || line.startsWith('[![')) continue
+    if (line.match(/^<[^>]+>$/)) continue  // Skip single HTML tags
+    if (line.match(/^<div|^<p|^<span|^<img|^<br|^<\/div|^<\/p|^<\/span/i)) continue
+
+    // Found a real text line - clean it and return
+    // Remove any inline HTML tags
+    const cleaned = line.replace(/<[^>]+>/g, '').trim()
+    if (cleaned.length > 10) {
+      return cleaned.slice(0, 200)
     }
   }
 

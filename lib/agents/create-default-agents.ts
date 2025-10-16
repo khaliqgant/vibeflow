@@ -17,7 +17,7 @@ function getAgentIcon(type: string): string {
 export async function createDefaultAgentsForProject(projectId: string) {
   const createdAgents = []
 
-  for (const [type, agent] of Object.entries(agents)) {
+  for (const [_type, agent] of Object.entries(agents)) {
     // Check if this agent already exists for this project
     const existingAgent = await prisma.agent.findFirst({
       where: {
