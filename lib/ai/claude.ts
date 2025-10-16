@@ -66,7 +66,7 @@ Format your response as JSON:
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0])
     }
-  } catch (_e) {
+  } catch {
     // Fallback if JSON parsing fails
   }
 

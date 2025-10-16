@@ -92,7 +92,7 @@ export default function TaskDetailPage() {
         setTask(updated)
         setIsEditing(false)
       }
-    } catch (_err) {
+    } catch {
       alert('Failed to update task')
     }
   }
@@ -109,7 +109,7 @@ export default function TaskDetailPage() {
       if (res.ok) {
         router.push(`/projects/${task.project.id}`)
       }
-    } catch (_err) {
+    } catch {
       alert('Failed to delete task')
     }
   }

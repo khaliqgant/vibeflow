@@ -479,7 +479,7 @@ async function getCodeStructure(projectPath: string): Promise<string> {
     }
 
     return structure.join('\n')
-  } catch (_error) {
+  } catch {
     return 'Unable to read project structure'
   }
 }

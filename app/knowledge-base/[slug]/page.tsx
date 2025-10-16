@@ -60,7 +60,7 @@ export default function KnowledgeBaseDocumentPage() {
       if (res.ok) {
         router.push('/knowledge-base')
       }
-    } catch (_err) {
+    } catch {
       alert('Failed to delete document')
     }
   }

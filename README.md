@@ -133,7 +133,7 @@ Drag tasks between To Do, In Progress, and Done. Each agent has their own board.
 <details>
 <summary><b>⚙️ Easy Configuration</b></summary>
 
-![Settings](https://via.placeholder.com/800x450/667eea/ffffff?text=Settings+Page)
+![Settings](./screenshots/settings.png)
 
 Add API keys, choose AI provider, and configure GitHub integration—all in a beautiful GUI.
 

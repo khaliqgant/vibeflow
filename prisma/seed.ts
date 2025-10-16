@@ -13,7 +13,7 @@ async function main() {
   for (const project of projects) {
     console.log(`Seeding agents for project: ${project.name}`)
 
-    for (const [_type, agent] of Object.entries(agents)) {
+    for (const agent of Object.values(agents)) {
       // Check if this agent already exists for this project
       const existingAgent = await prisma.agent.findFirst({
         where: {
