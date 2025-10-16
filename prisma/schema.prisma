@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id              String                    @id @default(uuid())
+  name            String
+  description     String?
+  path            String                    @unique
+  repoUrl         String?
+  githubOwner     String?
+  githubRepo      String?
+  status          String                    @default("active") // active, archived, completed
+  color           String?
+  aiAnalysis      String?                   // Claude's analysis of the project
+  techStack       String?                   // JSON array stored as string
+  lastAnalyzedAt  DateTime?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  // Multi-repo support
+  parentProjectId String?                   // If this is a child repo of a parent project
+  parentProject   Project?                  @relation("ProjectRepos", fields: [parentProjectId], references: [id], onDelete: SetNull)
+  childRepos      Project[]                 @relation("ProjectRepos")
+  projectGroupId  String?                   // Optional: group related repos together
+
+  tasks           Task[]
+  insights        ProjectInsight[]
+  knowledgeBase   KnowledgeBaseDocument[]
+  tags            String?                   // JSON array stored as string
+
+  @@index([parentProjectId])
+  @@index([projectGroupId])
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  status      String   @default("todo") // todo, in_progress, done
+  priority    String   @default("medium") // low, medium, high
+  order       Int      @default(0)
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  agentType   String?  // marketing, pricing, competitor, seo, blogging, technical, pm
+  aiReasoning String?  // Why Claude created this task
+  githubPrUrl String?  // Link to related PR
+  githubIssueUrl String? // Link to related issue
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  dueDate     DateTime?
+  tags        String?  // JSON array stored as string
+}
+
+model ProjectInsight {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  agentType   String   // marketing, pricing, competitor, seo, blogging, technical, pm
+  title       String
+  content     String   // AI-generated insight
+  priority    String   @default("medium")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model KnowledgeBaseDocument {
+  id          String                       @id @default(uuid())
+  title       String
+  content     String                       // Markdown content
+  slug        String                       @unique
+  projectId   String?
+  project     Project?                     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  source      String?                      // mcp, manual, ai-generated, etc.
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @updatedAt
+  tags        KnowledgeBaseDocumentTag[]
+}
+
+model KnowledgeBaseTag {
+  id          String                       @id @default(uuid())
+  name        String                       @unique
+  color       String?                      // hex color for tag badge
+  documents   KnowledgeBaseDocumentTag[]
+  createdAt   DateTime                     @default(now())
+}
+
+model KnowledgeBaseDocumentTag {
+  documentId  String
+  tagId       String
+  document    KnowledgeBaseDocument        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tag         KnowledgeBaseTag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([documentId, tagId])
+  @@index([documentId])
+  @@index([tagId])
+}
