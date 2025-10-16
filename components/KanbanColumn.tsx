@@ -16,13 +16,13 @@ export function KanbanColumn({ id, title, count, children }: KanbanColumnProps) 
     <div
       ref={setNodeRef}
       className={`flex-1 min-w-[320px] flex flex-col rounded-lg border-2 transition-colors ${
-        isOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
+        isOver ? 'border-blue-500 bg-blue-900/20' : 'border-gray-700 bg-gray-900'
       }`}
     >
-      <div className="p-4 border-b border-gray-200 bg-white rounded-t-lg">
+      <div className="p-4 border-b border-gray-700 bg-gray-800 rounded-t-lg">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">{title}</h3>
-          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+          <h3 className="font-semibold text-white">{title}</h3>
+          <span className="text-sm text-gray-400 bg-gray-700 px-2 py-1 rounded">
             {count}
           </span>
         </div>

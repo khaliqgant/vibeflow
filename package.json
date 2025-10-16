@@ -2,6 +2,9 @@
   "name": "vibeflow",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "dev": "next dev --turbopack -p 5847",
     "build": "next build --turbopack",

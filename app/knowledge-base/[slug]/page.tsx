@@ -76,10 +76,10 @@ export default function KnowledgeBaseDocumentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-          <p className="mt-4 text-gray-600">Loading document...</p>
+          <p className="mt-4 text-gray-400">Loading document...</p>
         </div>
       </div>
     )
@@ -87,14 +87,14 @@ export default function KnowledgeBaseDocumentPage() {
 
   if (error || !document) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Document not found</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Document not found</h1>
+          <p className="text-gray-400 mb-6">{error}</p>
           <Link
             href="/knowledge-base"
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             ← Back to Knowledge Base
           </Link>
@@ -104,40 +104,46 @@ export default function KnowledgeBaseDocumentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <Link
-            href="/knowledge-base"
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 transition-colors"
+            href={document.project ? `/projects/${document.project.id}/knowledge-base` : '/knowledge-base'}
+            className="inline-flex items-center text-blue-400 hover:text-blue-300 mb-4 transition-colors"
           >
             ← Back to Knowledge Base
           </Link>
 
-          <div className="bg-white rounded-xl p-8 shadow-sm">
+          <div className="bg-gray-800 rounded-xl p-8 border border-gray-700">
             <div className="flex items-start justify-between mb-4">
-              <h1 className="text-4xl font-bold text-gray-900">
+              <h1 className="text-4xl font-bold text-white">
                 {document.title}
               </h1>
               <button
                 onClick={handleDelete}
-                className="px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="px-3 py-2 text-sm text-red-400 hover:bg-red-900/30 rounded-lg transition-colors"
               >
                 Delete
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mb-6">
               <div className="flex items-center gap-2">
-                <span className="text-gray-400">📅</span>
+                <span className="text-gray-500">📅</span>
                 Updated {formatDate(document.updatedAt)}
               </div>
 
               {document.source && (
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-400">🔧</span>
-                  <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium">
+                  <span className="text-gray-500">🔧</span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    document.source === 'mcp'
+                      ? 'bg-purple-900/30 text-purple-400'
+                      : document.source === 'markdown'
+                      ? 'bg-green-900/30 text-green-400'
+                      : 'bg-blue-900/30 text-blue-400'
+                  }`}>
                     {document.source.toUpperCase()}
                   </span>
                 </div>
@@ -146,9 +152,9 @@ export default function KnowledgeBaseDocumentPage() {
               {document.project && (
                 <Link
                   href={`/projects/${document.project.id}`}
-                  className="flex items-center gap-2 hover:text-blue-600 transition-colors"
+                  className="flex items-center gap-2 hover:text-blue-400 transition-colors"
                 >
-                  <span className="text-gray-400">📁</span>
+                  <span className="text-gray-500">📁</span>
                   {document.project.name}
                 </Link>
               )}
@@ -161,7 +167,7 @@ export default function KnowledgeBaseDocumentPage() {
                   <Link
                     key={tag.id}
                     href={`/knowledge-base?tag=${encodeURIComponent(tag.name)}`}
-                    className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-200 transition-colors"
+                    className="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-sm hover:bg-gray-600 transition-colors"
                   >
                     #{tag.name}
                   </Link>
@@ -172,8 +178,8 @@ export default function KnowledgeBaseDocumentPage() {
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-xl p-8 shadow-sm">
-          <article className="prose prose-lg prose-slate max-w-none">
+        <div className="bg-gray-800 rounded-xl p-8 border border-gray-700">
+          <article className="prose prose-lg prose-invert max-w-none">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeHighlight]}
@@ -181,7 +187,7 @@ export default function KnowledgeBaseDocumentPage() {
                 // Custom styling for code blocks
                 code({ node, inline, className, children, ...props }: any) {
                   return inline ? (
-                    <code className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-sm" {...props}>
+                    <code className="bg-gray-700 text-gray-200 px-1.5 py-0.5 rounded text-sm" {...props}>
                       {children}
                     </code>
                   ) : (
@@ -194,7 +200,7 @@ export default function KnowledgeBaseDocumentPage() {
                 a({ node, children, ...props }: any) {
                   return (
                     <a
-                      className="text-blue-600 hover:text-blue-800 underline"
+                      className="text-blue-400 hover:text-blue-300 underline"
                       target="_blank"
                       rel="noopener noreferrer"
                       {...props}
@@ -213,8 +219,8 @@ export default function KnowledgeBaseDocumentPage() {
         {/* Footer Actions */}
         <div className="mt-8 flex justify-between items-center">
           <Link
-            href="/knowledge-base"
-            className="px-6 py-3 bg-white text-gray-700 rounded-lg shadow-sm hover:shadow-md transition-all"
+            href={document.project ? `/projects/${document.project.id}/knowledge-base` : '/knowledge-base'}
+            className="px-6 py-3 bg-gray-800 text-gray-200 rounded-lg border border-gray-700 hover:bg-gray-700 transition-all"
           >
             ← All Documents
           </Link>
@@ -222,7 +228,7 @@ export default function KnowledgeBaseDocumentPage() {
           {document.project && (
             <Link
               href={`/projects/${document.project.id}`}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               View Project →
             </Link>

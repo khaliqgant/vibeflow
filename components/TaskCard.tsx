@@ -21,9 +21,9 @@ interface TaskCardProps {
 }
 
 const priorityColors = {
-  low: 'bg-green-100 text-green-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  high: 'bg-red-100 text-red-800',
+  low: 'bg-green-900/30 text-green-400',
+  medium: 'bg-yellow-900/30 text-yellow-400',
+  high: 'bg-red-900/30 text-red-400',
 }
 
 export function TaskCard({ task, onUpdate }: TaskCardProps) {
@@ -55,27 +55,27 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className={`relative bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
-        isDragging ? 'opacity-50 cursor-move' : 'cursor-pointer hover:border-blue-300'
+      className={`relative bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md hover:shadow-blue-500/10 transition-shadow ${
+        isDragging ? 'opacity-50 cursor-move' : 'cursor-pointer hover:border-blue-500'
       }`}
       onClick={handleClick}
     >
       {/* Drag Handle */}
       <div
         {...listeners}
-        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 cursor-move"
+        className="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-300 cursor-move"
         onClick={(e) => e.stopPropagation()}
       >
         ⋮⋮
       </div>
 
       <div className="space-y-2">
-        <h4 className="font-medium text-gray-900 pr-8">{task.title}</h4>
+        <h4 className="font-medium text-white pr-8">{task.title}</h4>
         {task.description && (
-          <p className="text-sm text-gray-600 line-clamp-2">{task.description}</p>
+          <p className="text-sm text-gray-300 line-clamp-2">{task.description}</p>
         )}
         {task.aiReasoning && (
-          <p className="text-xs text-gray-500 italic border-l-2 border-blue-300 pl-2">
+          <p className="text-xs text-gray-400 italic border-l-2 border-blue-500 pl-2">
             {task.aiReasoning}
           </p>
         )}

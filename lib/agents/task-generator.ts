@@ -43,6 +43,14 @@ ${context.codeStructure}
 `
   }
 
+  // Add package.json info for technical context
+  if (context.packageJson) {
+    prompt += `**Dependencies:**
+${JSON.stringify(context.packageJson, null, 2).slice(0, 2000)}
+
+`
+  }
+
   if (context.openPRs && context.openPRs.length > 0) {
     prompt += `**Open Pull Requests (${context.openPRs.length}):**
 ${context.openPRs.slice(0, 5).map(pr => `- #${pr.number}: ${pr.title}`).join('\n')}
@@ -57,10 +65,23 @@ ${context.openIssues.slice(0, 5).map(issue => `- #${issue.number}: ${issue.title
 `
   }
 
+  // Add more specific guidance for technical agents
+  if (agent.type === 'technical') {
+    prompt += `
+**IMPORTANT FOR TECHNICAL ANALYSIS:**
+- Reference SPECIFIC files, functions, or components from the code structure above
+- Identify actual patterns you see (e.g., "I see Next.js app router structure" or "Express middleware pattern")
+- Mention specific dependencies that need attention (versions, security, size)
+- Create tasks with concrete file paths and technical details
+- Avoid generic advice - be as specific as the information above allows
+
+`
+  }
+
   prompt += `Based on your analysis, provide:
 
-1. **Key Insights** - 2-4 specific observations about this project from your ${agent.name} perspective
-2. **Actionable Tasks** - 3-7 concrete tasks that should be added to the project board
+1. **Key Insights** - 2-4 SPECIFIC observations about this project from your ${agent.name} perspective
+2. **Actionable Tasks** - 3-7 CONCRETE tasks that should be added to the project board
 3. **Recommendations** - High-level strategic recommendations
 
 Format your response as JSON:
@@ -68,16 +89,16 @@ Format your response as JSON:
   "insights": ["insight1", "insight2", ...],
   "tasks": [
     {
-      "title": "Task title",
-      "description": "Detailed description",
+      "title": "Specific task title with file/component names",
+      "description": "Detailed description with technical context",
       "priority": "high|medium|low",
-      "reasoning": "Why this task is important"
+      "reasoning": "Why this task is important with concrete impact"
     }
   ],
   "recommendations": ["rec1", "rec2", ...]
 }
 
-Be specific and actionable. Focus on tasks that can be worked on immediately.`
+${agent.type === 'technical' ? 'CRITICAL: Be SPECIFIC and TECHNICAL. Reference actual files, dependencies, and patterns you observe. Avoid generic tasks.' : 'Be specific and actionable. Focus on tasks that can be worked on immediately.'}`
 
   return prompt
 }

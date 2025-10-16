@@ -3,6 +3,7 @@ import path from 'path'
 import { prisma } from '@/lib/prisma'
 import { scanDirectory } from '@/lib/scanner'
 import { orchestrateProjectAnalysis } from '@/lib/agents/orchestrator'
+import { createDefaultAgentsForProject } from '@/lib/agents/create-default-agents'
 
 export async function GET() {
   try {
@@ -67,6 +68,8 @@ export async function POST(request: Request) {
                 status: 'active',
               },
             })
+            // Create default agents for parent project
+            await createDefaultAgentsForProject(parentProject.id)
           } else {
             parentProject = existingParent
           }
@@ -96,6 +99,9 @@ export async function POST(request: Request) {
             },
           })
 
+          // Create default agents for this project
+          await createDefaultAgentsForProject(project.id)
+
           // Trigger AI analysis asynchronously (don't wait for it)
           orchestrateProjectAnalysis(project.id).catch(err => {
             console.error(`Failed to analyze project ${project.id}:`, err)
@@ -120,6 +126,9 @@ export async function POST(request: Request) {
       data: projectData,
       include: { tasks: true },
     })
+
+    // Create default agents for this project
+    await createDefaultAgentsForProject(project.id)
 
     return NextResponse.json(project)
   } catch (error) {

@@ -34,6 +34,7 @@ export interface ProjectContext {
   repoUrl?: string
   techStack?: string[]
   codeStructure?: string
+  packageJson?: any
   openPRs?: any[]
   openIssues?: any[]
 }

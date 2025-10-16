@@ -17,14 +17,32 @@ export async function scanDirectory(dirPath: string): Promise<ScannedProject[]> 
   const projects: ScannedProject[] = []
 
   try {
+    // First check if the given path itself is a git repository
+    const isGitRepo = await checkGitRepo(dirPath)
+
+    if (isGitRepo) {
+      // This is a single project, not a directory of projects
+      const projectName = path.basename(dirPath)
+      const project = await analyzeProject(dirPath, projectName)
+      if (project) {
+        projects.push(project)
+      }
+      return projects
+    }
+
+    // If not a git repo, scan subdirectories for git repositories
     const entries = await fs.readdir(dirPath, { withFileTypes: true })
 
     for (const entry of entries) {
       if (entry.isDirectory() && !entry.name.startsWith('.')) {
         const projectPath = path.join(dirPath, entry.name)
-        const project = await analyzeProject(projectPath, entry.name)
-        if (project) {
-          projects.push(project)
+        // Only include if it has a .git directory
+        const hasGit = await checkGitRepo(projectPath)
+        if (hasGit) {
+          const project = await analyzeProject(projectPath, entry.name)
+          if (project) {
+            projects.push(project)
+          }
         }
       }
     }
@@ -84,7 +102,24 @@ async function getGitRemoteUrl(projectPath: string): Promise<string | undefined>
   try {
     const git = simpleGit(projectPath)
     const remotes = await git.getRemotes(true)
-    return remotes.find(r => r.name === 'origin')?.refs.fetch
+    const originUrl = remotes.find(r => r.name === 'origin')?.refs.fetch
+
+    if (!originUrl) return undefined
+
+    // Convert git@ format to https:// format
+    // git@github.com:user/repo.git -> https://github.com/user/repo
+    if (originUrl.startsWith('git@')) {
+      return originUrl
+        .replace(/^git@([^:]+):/, 'https://$1/')
+        .replace(/\.git$/, '')
+    }
+
+    // Remove .git suffix from https URLs
+    if (originUrl.endsWith('.git')) {
+      return originUrl.replace(/\.git$/, '')
+    }
+
+    return originUrl
   } catch {
     return undefined
   }

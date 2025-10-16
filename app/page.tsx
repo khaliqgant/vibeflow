@@ -25,21 +25,45 @@ export default function Home() {
   const [scanPaths, setScanPaths] = useState<string[]>([''])
   const [isScanning, setIsScanning] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [initialLoad, setInitialLoad] = useState(true)
 
   useEffect(() => {
     fetchProjects()
   }, [])
 
   useEffect(() => {
-    if (projects.length === 0) {
-      setShowOnboarding(true)
+    if (initialLoad) {
+      if (projects.length === 0) {
+        setShowOnboarding(true)
+      } else {
+        setShowOnboarding(false)
+      }
+      setInitialLoad(false)
     }
-  }, [projects])
+  }, [projects, initialLoad])
 
   const fetchProjects = async () => {
     const res = await fetch('/api/projects')
     const data = await res.json()
-    setProjects(data)
+    setProjects(Array.isArray(data) ? data : [])
+  }
+
+  const handleDeleteProject = async (projectId: string, projectName: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    if (!confirm(`Are you sure you want to delete "${projectName}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      await fetch(`/api/projects/${projectId}`, {
+        method: 'DELETE',
+      })
+      await fetchProjects()
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      alert('Failed to delete project')
+    }
   }
 
   const handleScan = async () => {
@@ -91,35 +115,35 @@ export default function Home() {
 
   const getProjectStatusColor = (project: Project) => {
     const completion = getProjectCompletion(project)
-    if (completion === 100) return 'text-green-600 bg-green-50'
-    if (completion >= 50) return 'text-blue-600 bg-blue-50'
-    if (completion > 0) return 'text-yellow-600 bg-yellow-50'
-    return 'text-gray-600 bg-gray-50'
+    if (completion === 100) return 'text-green-400 bg-green-900/30'
+    if (completion >= 50) return 'text-blue-400 bg-blue-900/30'
+    if (completion > 0) return 'text-yellow-400 bg-yellow-900/30'
+    return 'text-gray-400 bg-gray-700'
   }
 
   if (showOnboarding && projects.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-6">
         <div className="max-w-2xl w-full">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-blue-600 text-white text-4xl mb-6">
               🤖
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome to VibeFlow</h1>
-            <p className="text-lg text-gray-600">
+            <h1 className="text-4xl font-bold text-white mb-4">Welcome to VibeFlow</h1>
+            <p className="text-lg text-gray-300">
               AI-powered project management that analyzes your repos and creates intelligent tasks
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Get Started</h2>
-            <p className="text-gray-600 mb-6">
+          <div className="bg-gray-800 rounded-2xl shadow-xl border border-gray-700 p-8">
+            <h2 className="text-xl font-semibold text-white mb-2">Get Started</h2>
+            <p className="text-gray-300 mb-6">
               Enter paths to your project directories. Add multiple paths to scan several locations at once.
             </p>
 
             <div className="space-y-4">
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-300">
                   Project Directory Paths
                 </label>
                 {scanPaths.map((path, index) => (
@@ -129,7 +153,7 @@ export default function Home() {
                       value={path}
                       onChange={(e) => updatePath(index, e.target.value)}
                       placeholder={index === 0 ? "/home/user/projects" : "Add another path..."}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                      className="flex-1 px-4 py-3 border border-gray-600 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg text-white placeholder:text-gray-400"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault()
@@ -144,7 +168,7 @@ export default function Home() {
                     {scanPaths.length > 1 && (
                       <button
                         onClick={() => removePathField(index)}
-                        className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="px-3 py-2 text-red-400 hover:bg-red-900/30 rounded-lg transition-colors"
                         title="Remove path"
                       >
                         ×
@@ -154,11 +178,11 @@ export default function Home() {
                 ))}
                 <button
                   onClick={addPathField}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-sm text-blue-400 hover:text-blue-300 font-medium"
                 >
                   + Add another path
                 </button>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-400">
                   💡 Tip: Press Enter to add another path, or click "Scan Projects" when ready
                 </p>
               </div>
@@ -166,15 +190,15 @@ export default function Home() {
               <button
                 onClick={handleScan}
                 disabled={isScanning || scanPaths.every(p => !p.trim())}
-                className="w-full px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors text-lg font-medium"
+                className="w-full px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-600 transition-colors text-lg font-medium"
               >
                 {isScanning ? '🤖 Scanning and analyzing...' : `🚀 Scan ${scanPaths.filter(p => p.trim()).length} ${scanPaths.filter(p => p.trim()).length === 1 ? 'Path' : 'Paths'}`}
               </button>
             </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h3 className="font-medium text-gray-900 mb-3">What happens next?</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
+            <div className="mt-8 pt-8 border-t border-gray-700">
+              <h3 className="font-medium text-white mb-3">What happens next?</h3>
+              <ul className="space-y-2 text-sm text-gray-300">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold">1.</span>
                   <span>We'll scan your directory and find all projects</span>
@@ -200,27 +224,21 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-screen-2xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xl">
                 🤖
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">VibeFlow</h1>
+              <h1 className="text-2xl font-bold text-white">VibeFlow</h1>
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => router.push('/knowledge-base')}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-              >
-                📚 Knowledge Base
-              </button>
-              <button
                 onClick={() => router.push('/settings')}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium"
               >
                 ⚙️ Settings
               </button>
@@ -237,16 +255,16 @@ export default function Home() {
 
       {/* Onboarding Modal */}
       {showOnboarding && projects.length > 0 && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-50">
+          <div className="bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full p-8 border border-gray-700">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-gray-900">Add More Projects</h2>
+              <h2 className="text-2xl font-semibold text-white">Add More Projects</h2>
               <button
                 onClick={() => {
                   setShowOnboarding(false)
                   setScanPaths([''])
                 }}
-                className="text-gray-400 hover:text-gray-600 text-2xl"
+                className="text-gray-400 hover:text-gray-200 text-2xl"
               >
                 ×
               </button>
@@ -254,7 +272,7 @@ export default function Home() {
 
             <div className="space-y-4">
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-300">
                   Project Directory Paths
                 </label>
                 {scanPaths.map((path, index) => (
@@ -264,7 +282,7 @@ export default function Home() {
                       value={path}
                       onChange={(e) => updatePath(index, e.target.value)}
                       placeholder={index === 0 ? "/path/to/projects" : "Add another path..."}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="flex-1 px-4 py-3 border border-gray-600 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder:text-gray-400"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault()
@@ -279,7 +297,7 @@ export default function Home() {
                     {scanPaths.length > 1 && (
                       <button
                         onClick={() => removePathField(index)}
-                        className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="px-3 py-2 text-red-400 hover:bg-red-900/30 rounded-lg transition-colors"
                       >
                         ×
                       </button>
@@ -288,7 +306,7 @@ export default function Home() {
                 ))}
                 <button
                   onClick={addPathField}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-sm text-blue-400 hover:text-blue-300 font-medium"
                 >
                   + Add another path
                 </button>
@@ -297,7 +315,7 @@ export default function Home() {
               <button
                 onClick={handleScan}
                 disabled={isScanning || scanPaths.every(p => !p.trim())}
-                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors font-medium"
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-600 transition-colors font-medium"
               >
                 {isScanning ? '🤖 Scanning...' : `Scan ${scanPaths.filter(p => p.trim()).length} ${scanPaths.filter(p => p.trim()).length === 1 ? 'Path' : 'Paths'}`}
               </button>
@@ -309,8 +327,8 @@ export default function Home() {
       {/* Projects Grid */}
       <main className="max-w-screen-2xl mx-auto px-6 py-8">
         <div className="mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Your Projects</h2>
-          <p className="text-gray-600">{projects.length} projects • AI-powered task management</p>
+          <h2 className="text-2xl font-semibold text-white mb-2">Your Projects</h2>
+          <p className="text-gray-400">{projects.length} projects • AI-powered task management</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -323,29 +341,37 @@ export default function Home() {
             return (
               <div
                 key={project.id}
-                onClick={() => router.push(`/projects/${project.id}`)}
-                className="bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all cursor-pointer group"
+                className="bg-gray-800 rounded-xl border border-gray-700 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all group relative"
               >
-                <div className="p-6">
+                <div className="p-6 cursor-pointer" onClick={() => router.push(`/projects/${project.id}`)}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">
+                      <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors truncate">
                         {project.name}
                       </h3>
                       {project.description && (
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        <p className="text-sm text-gray-400 mt-1 line-clamp-2">
                           {project.description}
                         </p>
                       )}
                     </div>
-                    <span className={`ml-2 px-2 py-1 rounded-lg text-xs font-medium ${getProjectStatusColor(project)}`}>
-                      {completion}%
-                    </span>
+                    <div className="flex items-center gap-2 ml-2">
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getProjectStatusColor(project)}`}>
+                        {completion}%
+                      </span>
+                      <button
+                        onClick={(e) => handleDeleteProject(project.id, project.name, e)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded transition-all"
+                        title="Delete project"
+                      >
+                        ×
+                      </button>
+                    </div>
                   </div>
 
                   {/* Progress Bar */}
                   <div className="mb-4">
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all"
                         style={{ width: `${completion}%` }}
@@ -356,21 +382,21 @@ export default function Home() {
                   {/* Task Stats */}
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-1">
-                      <div className="w-3 h-3 rounded-full bg-gray-300" />
-                      <span className="text-gray-600">{todoCount}</span>
+                      <div className="w-3 h-3 rounded-full bg-gray-500" />
+                      <span className="text-gray-400">{todoCount}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                      <span className="text-gray-600">{inProgressCount}</span>
+                      <span className="text-gray-400">{inProgressCount}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="w-3 h-3 rounded-full bg-green-500" />
-                      <span className="text-gray-600">{doneCount}</span>
+                      <span className="text-gray-400">{doneCount}</span>
                     </div>
                   </div>
 
                   {project.repoUrl && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="mt-4 pt-4 border-t border-gray-700">
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <span>🔗</span>
                         <span className="truncate">{project.repoUrl.replace('https://', '')}</span>

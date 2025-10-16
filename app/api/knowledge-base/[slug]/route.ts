@@ -3,11 +3,12 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params
     const document = await prisma.knowledgeBaseDocument.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         tags: {
           include: {
@@ -36,9 +37,10 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params
     const body = await request.json()
     const { title, content, tags } = body
 
@@ -51,7 +53,7 @@ export async function PATCH(
     if (tags) {
       // Remove existing tag connections
       await prisma.knowledgeBaseDocumentTag.deleteMany({
-        where: { document: { slug: params.slug } }
+        where: { document: { slug } }
       })
 
       // Create new tag connections
@@ -82,7 +84,7 @@ export async function PATCH(
     }
 
     const document = await prisma.knowledgeBaseDocument.update({
-      where: { slug: params.slug },
+      where: { slug },
       data: updateData,
       include: {
         tags: {
@@ -103,11 +105,12 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params
     await prisma.knowledgeBaseDocument.delete({
-      where: { slug: params.slug }
+      where: { slug }
     })
 
     return NextResponse.json({ success: true })

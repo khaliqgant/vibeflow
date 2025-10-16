@@ -29,15 +29,15 @@ const statusOptions = ['todo', 'in_progress', 'done']
 const priorityOptions = ['low', 'medium', 'high']
 
 const statusColors = {
-  todo: 'bg-gray-100 text-gray-800',
-  in_progress: 'bg-yellow-100 text-yellow-800',
-  done: 'bg-green-100 text-green-800',
+  todo: 'bg-gray-700 text-gray-300',
+  in_progress: 'bg-yellow-900/30 text-yellow-400',
+  done: 'bg-green-900/30 text-green-400',
 }
 
 const priorityColors = {
-  low: 'bg-green-100 text-green-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  high: 'bg-red-100 text-red-800',
+  low: 'bg-green-900/30 text-green-400',
+  medium: 'bg-yellow-900/30 text-yellow-400',
+  high: 'bg-red-900/30 text-red-400',
 }
 
 export default function TaskDetailPage() {
@@ -125,10 +125,10 @@ export default function TaskDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-          <p className="mt-4 text-gray-600">Loading task...</p>
+          <p className="mt-4 text-gray-400">Loading task...</p>
         </div>
       </div>
     )
@@ -136,14 +136,14 @@ export default function TaskDetailPage() {
 
   if (error || !task) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Task not found</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Task not found</h1>
+          <p className="text-gray-400 mb-6">{error}</p>
           <Link
             href="/"
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             ← Back to Projects
           </Link>
@@ -153,14 +153,14 @@ export default function TaskDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header Navigation */}
         <div className="mb-8 flex items-center justify-between">
           <div className="space-y-2">
             <Link
               href={`/projects/${task.project.id}`}
-              className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+              className="inline-flex items-center text-blue-400 hover:text-blue-300 transition-colors"
             >
               ← Back to {task.project.name}
             </Link>
@@ -169,7 +169,7 @@ export default function TaskDetailPage() {
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 ✏️ Edit
               </button>
@@ -185,13 +185,13 @@ export default function TaskDetailPage() {
                       priority: task.priority,
                     })
                   }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   💾 Save
                 </button>
@@ -199,7 +199,7 @@ export default function TaskDetailPage() {
             )}
             <button
               onClick={handleDelete}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               🗑️ Delete
             </button>
@@ -207,17 +207,17 @@ export default function TaskDetailPage() {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-8 mb-6">
           {/* Title */}
           {isEditing ? (
             <input
               type="text"
               value={editData.title}
               onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-              className="w-full text-3xl font-bold text-gray-900 mb-6 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full text-3xl font-bold text-white mb-6 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           ) : (
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">{task.title}</h1>
+            <h1 className="text-3xl font-bold text-white mb-6">{task.title}</h1>
           )}
 
           {/* Badges */}
@@ -227,7 +227,7 @@ export default function TaskDetailPage() {
                 <select
                   value={editData.status}
                   onChange={(e) => setEditData({ ...editData, status: e.target.value })}
-                  className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium"
+                  className="px-3 py-1 rounded-lg border border-gray-600 bg-gray-700 text-white text-sm font-medium"
                 >
                   {statusOptions.map(status => (
                     <option key={status} value={status}>
@@ -238,7 +238,7 @@ export default function TaskDetailPage() {
                 <select
                   value={editData.priority}
                   onChange={(e) => setEditData({ ...editData, priority: e.target.value })}
-                  className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium"
+                  className="px-3 py-1 rounded-lg border border-gray-600 bg-gray-700 text-white text-sm font-medium"
                 >
                   {priorityOptions.map(priority => (
                     <option key={priority} value={priority}>
@@ -262,41 +262,41 @@ export default function TaskDetailPage() {
 
           {/* Description */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Description</h3>
+            <h3 className="text-sm font-semibold text-gray-300 mb-2">Description</h3>
             {isEditing ? (
               <textarea
                 value={editData.description || ''}
                 onChange={(e) => setEditData({ ...editData, description: e.target.value })}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                 placeholder="Add a description..."
               />
             ) : task.description ? (
-              <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
+              <p className="text-gray-200 whitespace-pre-wrap">{task.description}</p>
             ) : (
-              <p className="text-gray-400 italic">No description provided</p>
+              <p className="text-gray-500 italic">No description provided</p>
             )}
           </div>
 
           {/* AI Reasoning */}
           {task.aiReasoning && (
-            <div className="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-              <h3 className="text-sm font-semibold text-blue-900 mb-2">🤖 AI Reasoning</h3>
-              <p className="text-blue-800 text-sm">{task.aiReasoning}</p>
+            <div className="mb-6 bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded">
+              <h3 className="text-sm font-semibold text-blue-400 mb-2">🤖 AI Reasoning</h3>
+              <p className="text-blue-200 text-sm">{task.aiReasoning}</p>
             </div>
           )}
 
           {/* GitHub Links */}
           {(task.githubPrUrl || task.githubIssueUrl) && (
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">GitHub Links</h3>
+              <h3 className="text-sm font-semibold text-gray-300 mb-2">GitHub Links</h3>
               <div className="space-y-2">
                 {task.githubPrUrl && (
                   <a
                     href={task.githubPrUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+                    className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
                   >
                     <span>🔗</span>
                     <span>Pull Request</span>
@@ -307,7 +307,7 @@ export default function TaskDetailPage() {
                     href={task.githubIssueUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+                    className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
                   >
                     <span>🔗</span>
                     <span>Issue</span>
@@ -318,28 +318,28 @@ export default function TaskDetailPage() {
           )}
 
           {/* Metadata */}
-          <div className="pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Task Information</h3>
+          <div className="pt-6 border-t border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-300 mb-3">Task Information</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-500">Created:</span>
-                <span className="ml-2 text-gray-900">{formatDate(task.createdAt)}</span>
+                <span className="ml-2 text-gray-200">{formatDate(task.createdAt)}</span>
               </div>
               <div>
                 <span className="text-gray-500">Last Updated:</span>
-                <span className="ml-2 text-gray-900">{formatDate(task.updatedAt)}</span>
+                <span className="ml-2 text-gray-200">{formatDate(task.updatedAt)}</span>
               </div>
               {task.dueDate && (
                 <div>
                   <span className="text-gray-500">Due Date:</span>
-                  <span className="ml-2 text-gray-900">{formatDate(task.dueDate)}</span>
+                  <span className="ml-2 text-gray-200">{formatDate(task.dueDate)}</span>
                 </div>
               )}
               <div>
                 <span className="text-gray-500">Project:</span>
                 <Link
                   href={`/projects/${task.project.id}`}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  className="ml-2 text-blue-400 hover:text-blue-300"
                 >
                   {task.project.name}
                 </Link>
@@ -349,14 +349,14 @@ export default function TaskDetailPage() {
         </div>
 
         {/* Project Info Card */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Part of {task.project.name}</h3>
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-white mb-2">Part of {task.project.name}</h3>
           {task.project.description && (
-            <p className="text-gray-600 mb-4">{task.project.description}</p>
+            <p className="text-gray-300 mb-4">{task.project.description}</p>
           )}
           <Link
             href={`/projects/${task.project.id}`}
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+            className="inline-flex items-center text-blue-400 hover:text-blue-300 transition-colors"
           >
             View all tasks in this project →
           </Link>

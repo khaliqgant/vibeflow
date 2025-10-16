@@ -39,8 +39,8 @@ export function AgentBoard({
       <div className="flex items-center gap-3">
         <span className="text-3xl">{agentIcon}</span>
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">{agentName}</h2>
-          <p className="text-sm text-gray-600">{agentTasks.length} tasks</p>
+          <h2 className="text-xl font-semibold text-white">{agentName}</h2>
+          <p className="text-sm text-gray-400">{agentTasks.length} tasks</p>
         </div>
       </div>
       <KanbanBoard
