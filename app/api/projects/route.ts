@@ -46,40 +46,13 @@ export async function POST(request: Request) {
 
       // Process each group
       for (const [parentName, groupProjects] of projectGroups) {
-        let parentProject: { id: string } | null = null
-
-        // If we have a suggested parent name and multiple repos, create parent project
+        // If we have a suggested parent name and multiple repos, create single project with repositories
         if (parentName && groupProjects.length > 1) {
-          // Check if parent already exists
-          const existingParent = await prisma.project.findFirst({
+          // Check if project already exists
+          const existing = await prisma.project.findFirst({
             where: {
               name: parentName,
-              parentProjectId: null  // Top-level projects only
             },
-          })
-
-          if (!existingParent) {
-            // Create virtual parent project
-            parentProject = await prisma.project.create({
-              data: {
-                name: parentName,
-                path: path.dirname(groupProjects[0].path),  // Parent directory
-                description: `Multi-repo project with ${groupProjects.length} repositories`,
-                status: 'active',
-              },
-            })
-            // Create default agents for parent project
-            await createDefaultAgentsForProject(parentProject.id)
-          } else {
-            parentProject = existingParent
-          }
-        }
-
-        // Create each scanned project
-        for (const scanned of groupProjects) {
-          // Check if project already exists
-          const existing = await prisma.project.findUnique({
-            where: { path: scanned.path },
           })
 
           if (existing) {
@@ -87,15 +60,22 @@ export async function POST(request: Request) {
             continue
           }
 
-          // Create project
+          // Create single project with multiple repositories
+          const repositories = groupProjects.map(repo => ({
+            name: repo.name,
+            path: repo.path,
+            repoUrl: repo.repoUrl,
+            description: repo.description,
+          }))
+
           const project = await prisma.project.create({
             data: {
-              name: scanned.name,
-              path: scanned.path,
-              description: scanned.description,
-              repoUrl: scanned.repoUrl,
-              parentProjectId: parentProject?.id,
-              projectGroupId: parentProject?.id,  // Use same ID for grouping
+              name: parentName,
+              path: path.dirname(groupProjects[0].path),  // Parent directory
+              description: groupProjects[0].description || `Multi-repo project with ${groupProjects.length} repositories`,
+              repoUrl: groupProjects[0].repoUrl,
+              repositories: JSON.stringify(repositories),
+              status: 'active',
             },
           })
 
@@ -108,13 +88,39 @@ export async function POST(request: Request) {
           })
 
           results.push(project)
-        }
+        } else {
+          // Single repo - create as standalone project
+          for (const scanned of groupProjects) {
+            // Check if project already exists
+            const existing = await prisma.project.findUnique({
+              where: { path: scanned.path },
+            })
 
-        // If we created a parent project, trigger analysis on it too
-        if (parentProject && !projectGroups.has(undefined)) {
-          orchestrateProjectAnalysis(parentProject.id).catch(err => {
-            console.error(`Failed to analyze parent project ${parentProject.id}:`, err)
-          })
+            if (existing) {
+              results.push({ ...existing, skipped: true })
+              continue
+            }
+
+            // Create project
+            const project = await prisma.project.create({
+              data: {
+                name: scanned.name,
+                path: scanned.path,
+                description: scanned.description,
+                repoUrl: scanned.repoUrl,
+              },
+            })
+
+            // Create default agents for this project
+            await createDefaultAgentsForProject(project.id)
+
+            // Trigger AI analysis asynchronously (don't wait for it)
+            orchestrateProjectAnalysis(project.id).catch(err => {
+              console.error(`Failed to analyze project ${project.id}:`, err)
+            })
+
+            results.push(project)
+          }
         }
       }
 

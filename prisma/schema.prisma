@@ -25,8 +25,9 @@ model Project {
   lastAnalyzedAt  DateTime?
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
+  repositories    String?                   // JSON array of {name, path, repoUrl, description}
 
-  // Multi-repo support
+  // Multi-repo support (deprecated - use repositories field instead)
   parentProjectId String?                   // If this is a child repo of a parent project
   parentProject   Project?                  @relation("ProjectRepos", fields: [parentProjectId], references: [id], onDelete: SetNull)
   childRepos      Project[]                 @relation("ProjectRepos")

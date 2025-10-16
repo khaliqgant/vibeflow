@@ -36,7 +36,7 @@ describe('AI Provider', () => {
 
     it('should return correct OpenAI model', () => {
       const model = getDefaultModel('openai')
-      expect(model).toBe('gpt-4-turbo-preview')
+      expect(model).toBe('gpt-4o')
     })
 
     it('should use custom model from env for Claude', () => {

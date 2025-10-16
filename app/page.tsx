@@ -25,27 +25,39 @@ export default function Home() {
   const [scanPaths, setScanPaths] = useState<string[]>([''])
   const [isScanning, setIsScanning] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [initialLoad, setInitialLoad] = useState(true)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchProjects()
   }, [])
 
+  // Poll for updates while any project is being analyzed
   useEffect(() => {
-    if (initialLoad) {
-      if (projects.length === 0) {
-        setShowOnboarding(true)
-      } else {
-        setShowOnboarding(false)
-      }
-      setInitialLoad(false)
-    }
-  }, [projects, initialLoad])
+    const analyzingProjects = projects.filter(p => !p.lastAnalyzedAt)
+    if (analyzingProjects.length === 0) return
+
+    const pollInterval = setInterval(() => {
+      fetchProjects()
+    }, 3000) // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval)
+  }, [projects])
 
   const fetchProjects = async () => {
-    const res = await fetch('/api/projects')
-    const data = await res.json()
-    setProjects(Array.isArray(data) ? data : [])
+    setLoading(true)
+    try {
+      const res = await fetch('/api/projects')
+      const data = await res.json()
+      const projectList = Array.isArray(data) ? data : []
+      setProjects(projectList)
+
+      // Only show onboarding if there are no projects after loading
+      if (projectList.length === 0) {
+        setShowOnboarding(true)
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleDeleteProject = async (projectId: string, projectName: string, e: React.MouseEvent) => {
@@ -119,6 +131,17 @@ export default function Home() {
     if (completion >= 50) return 'text-blue-400 bg-blue-900/30'
     if (completion > 0) return 'text-yellow-400 bg-yellow-900/30'
     return 'text-gray-400 bg-gray-700'
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+          <p className="mt-4 text-gray-400">Loading projects...</p>
+        </div>
+      </div>
+    )
   }
 
   if (showOnboarding && projects.length === 0) {

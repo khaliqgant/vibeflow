@@ -5,6 +5,13 @@ import { useParams, useRouter } from 'next/navigation'
 import { AgentBoard } from '@/components/AgentBoard'
 import { KanbanBoard } from '@/components/KanbanBoard'
 
+interface Repository {
+  name: string
+  path: string
+  repoUrl?: string
+  description?: string
+}
+
 interface Project {
   id: string
   name: string
@@ -15,6 +22,7 @@ interface Project {
   aiAnalysis?: string
   techStack?: string
   lastAnalyzedAt?: string
+  repositories?: string
   tasks: Task[]
   insights?: Insight[]
 }
@@ -75,6 +83,7 @@ export default function ProjectPage() {
   const [loadingPRs, setLoadingPRs] = useState(false)
   const [agents, setAgents] = useState<Agent[]>([])
   const [isGeneratingTasks, setIsGeneratingTasks] = useState(false)
+  const [selectedRepo, setSelectedRepo] = useState<string | null>(null)
 
   useEffect(() => {
     if (!projectId) return
@@ -89,6 +98,31 @@ export default function ProjectPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.githubOwner, project?.githubRepo])
+
+  // Set default selected repo
+  useEffect(() => {
+    if (!project || !project.repositories) return
+    try {
+      const repositories = JSON.parse(project.repositories)
+      if (repositories.length > 1 && !selectedRepo) {
+        setSelectedRepo(repositories[0].name)
+      }
+    } catch {
+      // Invalid JSON, ignore
+    }
+  }, [project, selectedRepo])
+
+  // Poll for updates while analysis is in progress
+  useEffect(() => {
+    if (!project || project.lastAnalyzedAt) return
+
+    const pollInterval = setInterval(() => {
+      fetchProject()
+    }, 3000) // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project?.lastAnalyzedAt])
 
   const fetchProject = async () => {
     const res = await fetch(`/api/projects/${projectId}`)
@@ -194,6 +228,8 @@ export default function ProjectPage() {
   const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
   const techStack = project.techStack ? JSON.parse(project.techStack) : []
+  const repositories: Repository[] = project.repositories ? JSON.parse(project.repositories) : []
+  const hasMultipleRepos = repositories.length > 1
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -211,6 +247,11 @@ export default function ProjectPage() {
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-semibold text-white">{project.name}</h1>
+                  {hasMultipleRepos && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-900/30 text-purple-400 text-xs font-medium rounded-full border border-purple-500/30">
+                      📦 {repositories.length} repos
+                    </span>
+                  )}
                   {!project.lastAnalyzedAt && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-900/40 text-blue-400 text-sm font-medium rounded-full border border-blue-500/30 animate-pulse">
                       <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24">
@@ -250,7 +291,38 @@ export default function ProjectPage() {
       <div className="max-w-screen-2xl mx-auto px-6 py-6">
         <div className="flex gap-6">
           {/* Sidebar Navigation */}
-          <aside className="w-56 flex-shrink-0">
+          <aside className="w-64 flex-shrink-0">
+            {/* Repository Switcher */}
+            {hasMultipleRepos && (
+              <>
+                <div className="mb-4 pb-4 border-b border-gray-700">
+                  <p className="text-xs font-semibold text-gray-500 uppercase mb-2 px-3">Repositories</p>
+                  <div className="space-y-1">
+                    {repositories.map((repo) => (
+                      <button
+                        key={repo.name}
+                        onClick={() => setSelectedRepo(repo.name)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                          selectedRepo === repo.name
+                            ? 'bg-blue-900/30 text-blue-400'
+                            : 'text-gray-300 hover:bg-gray-800'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>📦</span>
+                          <span className="truncate">{repo.name}</span>
+                        </div>
+                        {repo.description && (
+                          <p className="text-xs text-gray-500 mt-0.5 ml-6 truncate">
+                            {repo.description}
+                          </p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
             <nav className="space-y-1">
               <button
                 onClick={() => setActiveView('overview')}
@@ -360,27 +432,70 @@ export default function ProjectPage() {
 
                 {/* Project Info */}
                 <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-                  <h2 className="text-lg font-semibold text-white mb-4">Project Information</h2>
+                  <h2 className="text-lg font-semibold text-white mb-4">
+                    {hasMultipleRepos && selectedRepo ? `${selectedRepo} Information` : 'Project Information'}
+                  </h2>
                   <div className="space-y-4">
-                    {project.description && (
-                      <div>
-                        <div className="text-sm font-medium text-gray-400 mb-1">Description</div>
-                        <p className="text-gray-200">{project.description}</p>
-                      </div>
+                    {/* Show selected repo info if multiple repos */}
+                    {hasMultipleRepos && selectedRepo && (() => {
+                      const repo = repositories.find(r => r.name === selectedRepo)
+                      return repo ? (
+                        <>
+                          {repo.description && (
+                            <div>
+                              <div className="text-sm font-medium text-gray-400 mb-1">Description</div>
+                              <p className="text-gray-200">{repo.description}</p>
+                            </div>
+                          )}
+                          {repo.repoUrl && (
+                            <div>
+                              <div className="text-sm font-medium text-gray-400 mb-1">Repository</div>
+                              <a
+                                href={repo.repoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-400 hover:underline break-all"
+                              >
+                                {repo.repoUrl}
+                              </a>
+                            </div>
+                          )}
+                          <div>
+                            <div className="text-sm font-medium text-gray-400 mb-1">Path</div>
+                            <code className="text-sm text-gray-300 bg-gray-700 px-2 py-1 rounded">
+                              {repo.path}
+                            </code>
+                          </div>
+                        </>
+                      ) : null
+                    })()}
+
+                    {/* Show main project info for single-repo projects */}
+                    {!hasMultipleRepos && (
+                      <>
+                        {project.description && (
+                          <div>
+                            <div className="text-sm font-medium text-gray-400 mb-1">Description</div>
+                            <p className="text-gray-200">{project.description}</p>
+                          </div>
+                        )}
+                        {project.repoUrl && (
+                          <div>
+                            <div className="text-sm font-medium text-gray-400 mb-1">Repository</div>
+                            <a
+                              href={project.repoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:underline break-all"
+                            >
+                              {project.repoUrl}
+                            </a>
+                          </div>
+                        )}
+                      </>
                     )}
-                    {project.repoUrl && (
-                      <div>
-                        <div className="text-sm font-medium text-gray-400 mb-1">Repository</div>
-                        <a
-                          href={project.repoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:underline"
-                        >
-                          {project.repoUrl}
-                        </a>
-                      </div>
-                    )}
+
+                    {/* Tech stack and AI analysis shown for all projects */}
                     {techStack.length > 0 && (
                       <div>
                         <div className="text-sm font-medium text-gray-400 mb-2">Tech Stack</div>

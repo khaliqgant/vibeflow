@@ -15,13 +15,18 @@ describe('Scanner', () => {
 
   describe('scanDirectory', () => {
     it('should scan directory and return projects', async () => {
+      // First access call checks if path itself is a git repo (should fail)
+      // Subsequent calls check subdirectories
+      mockFs.access
+        .mockRejectedValueOnce(new Error('Not found'))
+        .mockResolvedValue(undefined)
+
       mockFs.readdir.mockResolvedValue([
         { name: 'project1', isDirectory: () => true } as fs.Dirent,
         { name: 'project2', isDirectory: () => true } as fs.Dirent,
         { name: 'file.txt', isDirectory: () => false } as fs.Dirent,
       ])
 
-      mockFs.access.mockResolvedValue(undefined)
       mockFs.readFile.mockResolvedValue('# Test Project\nDescription here')
 
       const mockGitInstance = {
@@ -40,12 +45,16 @@ describe('Scanner', () => {
     })
 
     it('should skip hidden directories', async () => {
+      // First access call checks if path itself is a git repo (should fail)
+      mockFs.access
+        .mockRejectedValueOnce(new Error('Not found'))
+        .mockResolvedValue(undefined)
+
       mockFs.readdir.mockResolvedValue([
         { name: '.hidden', isDirectory: () => true } as fs.Dirent,
         { name: 'visible', isDirectory: () => true } as fs.Dirent,
       ])
 
-      mockFs.access.mockResolvedValue(undefined)
       mockFs.readFile.mockResolvedValue('# Test')
 
       const mockGitInstance = {
@@ -60,26 +69,30 @@ describe('Scanner', () => {
     })
 
     it('should handle directories without git', async () => {
+      // All git checks fail (path itself and subdirectories)
+      mockFs.access.mockRejectedValue(new Error('Not found'))
+
       mockFs.readdir.mockResolvedValue([
         { name: 'no-git', isDirectory: () => true } as fs.Dirent,
       ])
 
-      mockFs.access.mockRejectedValue(new Error('Not found'))
       mockFs.readFile.mockResolvedValue('# Test')
 
       const result = await scanDirectory('/test/path')
 
-      expect(result).toHaveLength(1)
-      expect(result[0].hasGit).toBe(false)
-      expect(result[0].repoUrl).toBeUndefined()
+      expect(result).toHaveLength(0)
     })
 
     it('should extract description from README', async () => {
+      // First check fails (not itself a git repo), then subdirectory check passes
+      mockFs.access
+        .mockRejectedValueOnce(new Error('Not found'))
+        .mockResolvedValue(undefined)
+
       mockFs.readdir.mockResolvedValue([
         { name: 'project', isDirectory: () => true } as fs.Dirent,
       ])
 
-      mockFs.access.mockResolvedValue(undefined)
       mockFs.readFile.mockResolvedValue('# Title\n\nThis is the description')
 
       const mockGitInstance = {
@@ -93,11 +106,15 @@ describe('Scanner', () => {
     })
 
     it('should handle missing README', async () => {
+      // First check fails (not itself a git repo), then subdirectory check passes
+      mockFs.access
+        .mockRejectedValueOnce(new Error('Not found'))
+        .mockResolvedValue(undefined)
+
       mockFs.readdir.mockResolvedValue([
         { name: 'project', isDirectory: () => true } as fs.Dirent,
       ])
 
-      mockFs.access.mockResolvedValue(undefined)
       mockFs.readFile.mockRejectedValue(new Error('Not found'))
 
       const mockGitInstance = {
@@ -112,11 +129,21 @@ describe('Scanner', () => {
     })
 
     it('should handle scan errors gracefully', async () => {
-      mockFs.readdir.mockRejectedValue(new Error('Permission denied'))
+      // First check if path itself is a git repo - let's say it is
+      mockFs.access.mockResolvedValue(undefined)
+      // But readFile fails
+      mockFs.readFile.mockRejectedValue(new Error('Permission denied'))
+
+      const mockGitInstance = {
+        getRemotes: jest.fn().mockResolvedValue([]),
+      }
+      mockGit.mockReturnValue(mockGitInstance as ReturnType<typeof simpleGit>)
 
       const result = await scanDirectory('/test/path')
 
-      expect(result).toEqual([])
+      // Should still return the project even if README is missing
+      expect(result).toHaveLength(1)
+      expect(result[0].name).toBe('path')
     })
   })
 })

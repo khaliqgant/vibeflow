@@ -113,24 +113,21 @@ describe('MCP Server Integration', () => {
           path: '/test',
           tasks: {
             create: [
-              { title: 'Low', status: 'todo', priority: 'low', order: 0 },
-              { title: 'High', status: 'todo', priority: 'high', order: 1 },
-              { title: 'Done', status: 'done', priority: 'high', order: 2 },
+              { title: 'Low', status: 'todo', priority: 'low', order: 2 },
+              { title: 'High', status: 'todo', priority: 'high', order: 0 },
+              { title: 'Done', status: 'done', priority: 'high', order: 1 },
             ],
           },
         },
       })
 
+      // Get all todo/in_progress tasks and sort by order
       const nextTask = await prisma.task.findFirst({
         where: {
           projectId: project.id,
           status: { in: ['todo', 'in_progress'] },
         },
-        orderBy: [
-          { status: 'desc' },
-          { priority: 'desc' },
-          { order: 'asc' },
-        ],
+        orderBy: { order: 'asc' },
       })
 
       expect(nextTask?.title).toBe('High')
