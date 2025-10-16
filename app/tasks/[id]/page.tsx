@@ -16,13 +16,22 @@ interface Task {
   githubPrUrl?: string
   githubIssueUrl?: string
   dueDate?: string
+  tags?: string
   createdAt: string
   updatedAt: string
   project: {
     id: string
     name: string
     description?: string
+    repositories?: string
   }
+}
+
+interface Repository {
+  name: string
+  path: string
+  repoUrl?: string
+  description?: string
 }
 
 const statusOptions = ['todo', 'in_progress', 'done']
@@ -69,6 +78,7 @@ export default function TaskDetailPage() {
         description: data.description,
         status: data.status,
         priority: data.priority,
+        tags: data.tags,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load task')
@@ -184,6 +194,7 @@ export default function TaskDetailPage() {
                       description: task.description,
                       status: task.status,
                       priority: task.priority,
+                      tags: task.tags,
                     })
                   }}
                   className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors"
@@ -278,6 +289,66 @@ export default function TaskDetailPage() {
               <p className="text-gray-500 italic">No description provided</p>
             )}
           </div>
+
+          {/* Repository Tags */}
+          {task.project.repositories && (() => {
+            const repositories: Repository[] = JSON.parse(task.project.repositories)
+            if (repositories.length === 0) return null
+
+            // Always use task.tags for display, editData.tags only for editing
+            const displayTags = task.tags ? JSON.parse(task.tags) : []
+            const repoTags = displayTags.filter((tag: string) =>
+              repositories.some(repo => repo.name === tag)
+            )
+
+            const toggleRepoTag = (repoName: string) => {
+              const tags = editData.tags !== undefined ? JSON.parse(editData.tags || '[]') : (task.tags ? JSON.parse(task.tags) : [])
+              const newTags = tags.includes(repoName)
+                ? tags.filter((t: string) => t !== repoName)
+                : [...tags, repoName]
+              setEditData({ ...editData, tags: JSON.stringify(newTags) })
+            }
+
+            return (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-300 mb-2">Repository Tags</h3>
+                {isEditing ? (
+                  <div className="flex flex-wrap gap-2">
+                    {repositories.map(repo => {
+                      const tags = editData.tags !== undefined ? JSON.parse(editData.tags || '[]') : (task.tags ? JSON.parse(task.tags) : [])
+                      const isSelected = tags.includes(repo.name)
+                      return (
+                        <button
+                          key={repo.name}
+                          onClick={() => toggleRepoTag(repo.name)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
+                            isSelected
+                              ? 'bg-purple-900/30 text-purple-400 border-purple-500/30'
+                              : 'bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600'
+                          }`}
+                        >
+                          📦 {repo.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : repoTags.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {repoTags.map((repoName: string) => (
+                      <span
+                        key={repoName}
+                        className="px-3 py-1 bg-purple-900/30 text-purple-400 rounded-lg text-sm font-medium border border-purple-500/30"
+                      >
+                        📦 {repoName}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 italic">No repository tags assigned</p>
+                )}
+              </div>
+            )
+          })()}
 
           {/* AI Reasoning */}
           {task.aiReasoning && (

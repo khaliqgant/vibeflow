@@ -13,11 +13,20 @@ interface Task {
   status: string
   agentType?: string
   aiReasoning?: string
+  tags?: string
+}
+
+interface Repository {
+  name: string
+  path: string
+  repoUrl?: string
+  description?: string
 }
 
 interface TaskCardProps {
   task: Task
   onUpdate: (updates: Partial<Task>) => void
+  repositories?: Repository[]
 }
 
 const priorityColors = {
@@ -26,7 +35,7 @@ const priorityColors = {
   high: 'bg-red-900/30 text-red-400',
 }
 
-export function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task, repositories = [] }: TaskCardProps) {
   const router = useRouter()
   const {
     attributes,
@@ -36,6 +45,12 @@ export function TaskCard({ task }: TaskCardProps) {
     transition,
     isDragging,
   } = useSortable({ id: task.id })
+
+  // Extract repository tags from task tags
+  const taskTags = task.tags ? JSON.parse(task.tags) : []
+  const repoTags = taskTags.filter((tag: string) =>
+    repositories.some(repo => repo.name === tag)
+  )
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -89,6 +104,14 @@ export function TaskCard({ task }: TaskCardProps) {
             {task.priority}
           </span>
           {task.agentType && <AgentBadge agentType={task.agentType} />}
+          {repoTags.length > 0 && repoTags.map((repo: string) => (
+            <span
+              key={repo}
+              className="text-xs px-2 py-0.5 bg-purple-900/30 text-purple-400 rounded border border-purple-500/30"
+            >
+              📦 {repo}
+            </span>
+          ))}
         </div>
       </div>
     </div>

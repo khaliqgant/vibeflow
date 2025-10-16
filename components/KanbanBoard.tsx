@@ -22,12 +22,21 @@ export interface Task {
   priority: string
   projectId: string
   order: number
+  tags?: string
+}
+
+interface Repository {
+  name: string
+  path: string
+  repoUrl?: string
+  description?: string
 }
 
 interface KanbanBoardProps {
   tasks: Task[]
   projectId: string
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
+  repositories?: Repository[]
 }
 
 const columns = [
@@ -36,8 +45,11 @@ const columns = [
   { id: 'done', title: 'Done' },
 ]
 
-export function KanbanBoard({ tasks, onTaskUpdate }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onTaskUpdate, repositories = [] }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [repoFilter, setRepoFilter] = useState<string[]>([])
+
+  const hasMultipleRepos = repositories.length > 1
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -68,17 +80,71 @@ export function KanbanBoard({ tasks, onTaskUpdate }: KanbanBoardProps) {
     }
   }
 
+  // Filter tasks by selected repositories
+  const filteredTasks = tasks.filter(task => {
+    if (repoFilter.length === 0) return true
+
+    try {
+      const taskTags = task.tags ? JSON.parse(task.tags) : []
+      return repoFilter.some(repo => taskTags.includes(repo))
+    } catch {
+      return false
+    }
+  })
+
   const getTasksByStatus = (status: string) => {
-    return tasks.filter(task => task.status === status)
+    return filteredTasks.filter(task => task.status === status)
+  }
+
+  const toggleRepoFilter = (repo: string) => {
+    setRepoFilter(prev =>
+      prev.includes(repo)
+        ? prev.filter(r => r !== repo)
+        : [...prev, repo]
+    )
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex gap-6 h-full overflow-x-auto pb-4">
+    <div className="space-y-4">
+      {/* Repository Filter */}
+      {hasMultipleRepos && (
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-sm font-medium text-gray-400">Filter by repository:</span>
+            <div className="flex flex-wrap gap-2">
+              {repositories.map(repo => (
+                <button
+                  key={repo.name}
+                  onClick={() => toggleRepoFilter(repo.name)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                    repoFilter.includes(repo.name)
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  📦 {repo.name}
+                </button>
+              ))}
+              {repoFilter.length > 0 && (
+                <button
+                  onClick={() => setRepoFilter([])}
+                  className="px-3 py-1 rounded-full text-sm font-medium bg-red-900/30 text-red-400 hover:bg-red-900/50"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Kanban Board */}
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-6 h-full overflow-x-auto pb-4">
         {columns.map(column => {
           const columnTasks = getTasksByStatus(column.id)
           return (
@@ -97,6 +163,7 @@ export function KanbanBoard({ tasks, onTaskUpdate }: KanbanBoardProps) {
                     key={task.id}
                     task={task}
                     onUpdate={(updates) => onTaskUpdate(task.id, updates)}
+                    repositories={repositories}
                   />
                 ))}
               </SortableContext>
@@ -105,13 +172,14 @@ export function KanbanBoard({ tasks, onTaskUpdate }: KanbanBoardProps) {
         })}
       </div>
 
-      <DragOverlay>
-        {activeTask ? (
-          <div className="opacity-80">
-            <TaskCard task={activeTask} onUpdate={() => {}} />
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+        <DragOverlay>
+          {activeTask ? (
+            <div className="opacity-80">
+              <TaskCard task={activeTask} onUpdate={() => {}} repositories={repositories} />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
   )
 }

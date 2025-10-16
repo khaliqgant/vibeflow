@@ -84,6 +84,9 @@ export default function ProjectPage() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [isGeneratingTasks, setIsGeneratingTasks] = useState(false)
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null)
+  const [showAddRepoModal, setShowAddRepoModal] = useState(false)
+  const [availableProjects, setAvailableProjects] = useState<Project[]>([])
+  const [isMergingProject, setIsMergingProject] = useState(false)
 
   useEffect(() => {
     if (!projectId) return
@@ -215,6 +218,49 @@ export default function ProjectPage() {
     }
   }
 
+  const fetchAvailableProjects = async () => {
+    try {
+      const res = await fetch('/api/projects')
+      const data = await res.json()
+      // Filter out current project
+      const filtered = data.filter((p: Project) => p.id !== projectId)
+      setAvailableProjects(filtered)
+    } catch (error) {
+      console.error('Error fetching projects:', error)
+    }
+  }
+
+  const handleAddRepository = async (sourceProjectId: string) => {
+    setIsMergingProject(true)
+    try {
+      const res = await fetch(`/api/projects/${projectId}/add-repository`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceProjectId }),
+      })
+
+      if (res.ok) {
+        const result = await res.json()
+        alert(result.message)
+        setShowAddRepoModal(false)
+        await fetchProject()
+      } else {
+        const error = await res.json()
+        alert(error.error || 'Failed to add repository')
+      }
+    } catch (error) {
+      console.error('Error adding repository:', error)
+      alert('Failed to add repository')
+    } finally {
+      setIsMergingProject(false)
+    }
+  }
+
+  const openAddRepoModal = async () => {
+    await fetchAvailableProjects()
+    setShowAddRepoModal(true)
+  }
+
   if (!projectId || !project) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900">
@@ -275,6 +321,12 @@ export default function ProjectPage() {
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
               >
                 🗑️ Delete
+              </button>
+              <button
+                onClick={openAddRepoModal}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                📦 Add Repository
               </button>
               <button
                 onClick={handleGenerateMoreTasks}
@@ -565,6 +617,7 @@ export default function ProjectPage() {
                   tasks={project.tasks}
                   projectId={project.id}
                   onTaskUpdate={handleTaskUpdate}
+                  repositories={repositories}
                 />
               </div>
             )}
@@ -648,6 +701,72 @@ export default function ProjectPage() {
           </main>
         </div>
       </div>
+
+      {/* Add Repository Modal */}
+      {showAddRepoModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-white">Add Repository from Existing Project</h2>
+              <button
+                onClick={() => setShowAddRepoModal(false)}
+                className="text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {availableProjects.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">
+                No other projects available to add as a repository
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-400 mb-4">
+                  Select a project to merge as a repository. All tasks and insights will be migrated to this project
+                  and tagged with the repository name.
+                </p>
+                {availableProjects.map(proj => (
+                  <div
+                    key={proj.id}
+                    className="bg-gray-700 rounded-lg border border-gray-600 p-4 hover:border-blue-500 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <h3 className="text-white font-medium mb-1">{proj.name}</h3>
+                        {proj.description && (
+                          <p className="text-sm text-gray-400 mb-2">{proj.description}</p>
+                        )}
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          {proj.tasks && <span>📋 {proj.tasks.length} tasks</span>}
+                          {proj.repoUrl && (
+                            <a
+                              href={proj.repoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              🔗 Repository
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleAddRepository(proj.id)}
+                        disabled={isMergingProject}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-600 transition-colors text-sm font-medium whitespace-nowrap"
+                      >
+                        {isMergingProject ? 'Adding...' : 'Add as Repo'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
